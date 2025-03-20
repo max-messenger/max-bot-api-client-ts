@@ -1,0 +1,18 @@
+{
+  "extends": ["airbnb-base", "airbnb-typescript/base"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "import/extensions": "off",
+    "import/prefer-default-export": "off",
+    "no-await-in-loop": "off",
+    "no-return-assign": "off",
+    "no-underscore-dangle": ["error", {"allowAfterThis": true}],
+    "@typescript-eslint/no-use-before-define": "off",
+    "arrow-body-style": "off",
+    "no-restricted-syntax": "off",
+    "class-methods-use-this": "off",
+    "max-classes-per-file": "off"
+  }
+}
