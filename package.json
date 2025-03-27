@@ -46,7 +46,7 @@
     "eslint-plugin-import": "^2.25.2",
     "mit-license": "^1.0.0",
     "nodemon": "^3.1.7",
-    "typescript": "^5.4.2"
+    "typescript": "^5.8.2"
   },
   "dependencies": {
     "debug": "^4.3.7",
