@@ -14,20 +14,20 @@
 ### Установка
 #### npm
 ```sh
-npm install @onemehub/one-me-bot-api
+npm install @maxhub/max-bot-api
 ```
 #### yarn
 ```sh
-yarn add @onemehub/one-me-bot-api
+yarn add @maxhub/max-bot-api
 ```
 #### pnpm
 ```sh
-pnpm add @onemehub/one-me-bot-api
+pnpm add @maxhub/max-bot-api
 ```
 
 ### Пример
 ```javascript
-import { Bot } from '@onemehub/one-me-bot-api';
+import { Bot } from '@maxhub/max-bot-api';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 

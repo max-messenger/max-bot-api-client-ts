@@ -1,4 +1,4 @@
-import { Bot, Context } from '@onemehub/one-me-bot-api';
+import { Bot, Context } from '@maxhub/max-bot-api';
 
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error('Token must be provided');

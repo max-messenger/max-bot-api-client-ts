@@ -1,4 +1,4 @@
-import { Bot, ImageAttachment, StickerAttachment, LocationAttachment } from '@onemehub/one-me-bot-api';
+import { Bot, ImageAttachment, StickerAttachment, LocationAttachment } from '@maxhub/max-bot-api';
 
 import fs from 'fs';
 import path from 'path';
