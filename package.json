@@ -43,7 +43,7 @@
     "eslint": "^8.2.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-import": "^2.31.0",
     "mit-license": "^1.0.0",
     "nodemon": "^3.1.7",
     "typescript": "^5.4.2"
