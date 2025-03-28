@@ -49,7 +49,7 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
-    "debug": "^4.3.7",
+    "debug": "^4.4.0",
     "vcf": "^2.1.2"
   }
 }
