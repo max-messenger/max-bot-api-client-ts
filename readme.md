@@ -29,7 +29,7 @@
 ```javascript
 import⠀{⠀bot⠀}⠀from⠀⠄⠩maxhub⠌max⠤bot⠤api⠄⠰
 
-const⠀bot⠀⠿⠀new⠀bot⠣process⠲env⠲bot⠸token⠜⠰
+⠉⠕⠝⠎⠞⠀⠃⠕⠞⠀⠿⠀⠝⠑⠺⠀⠃⠕⠞⠣⠏⠗⠕⠉⠑⠎⠎⠲⠑⠝⠧⠲⠃⠕⠞⠸⠞⠕⠅⠑⠝⠜⠰
 
 ⠌⠌⠀⠥⠎⠞⠁⠝⠕⠺⠅⠁⠀⠏⠕⠙⠎⠅⠁⠵⠕⠅⠀⠎⠀⠙⠕⠎⠞⠥⠏⠝⠮⠍⠊⠀⠅⠕⠍⠁⠝⠙⠁⠍⠊
 bot⠲api⠲setmycommands⠣[
