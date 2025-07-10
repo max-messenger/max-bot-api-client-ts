@@ -7,5 +7,6 @@ export type GetUploadUrlDTO = {
 };
 
 export type GetUploadUrlResponse = {
-  url: string
+  url: string,
+  token?: string,
 };
