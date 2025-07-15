@@ -1,4 +1,4 @@
-import { sleep } from '../../../../../utils';
+import { setTimeout } from 'node:timers/promises';
 import { MaxError } from '../../error';
 import { BaseApi } from '../../base-api';
 import type {
@@ -36,7 +36,7 @@ export class MessagesApi extends BaseApi {
       if (err instanceof MaxError) {
         if (err.code === 'attachment.not.ready') {
           console.log('Attachment not ready');
-          await sleep(1000);
+          await setTimeout(1000);
           return this.send({
             chat_id, user_id, disable_link_preview, ...body,
           });
