@@ -3,8 +3,8 @@ import createDebug from 'debug';
 const debug = createDebug('one-me:client');
 
 const defaultOptions = {
-  baseUrl: 'https://botapi.max.ru',
-} as const;
+  baseUrl: 'https://platform-api.max.ru',
+};
 
 export type ClientOptions = Partial<typeof defaultOptions>;
 
@@ -39,7 +39,7 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
       };
     }
 
-    const url = new URL(buildUrl(method, token, callOptions.path), baseUrl);
+    const url = new URL(buildUrl(method, callOptions.path), baseUrl);
 
     Object.keys(callOptions.query ?? {}).forEach((param) => {
       const value = callOptions.query?.[param];
@@ -48,6 +48,8 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
     });
 
     const init: RequestInit = { ...getResponseInit(callOptions?.body), method: httpMethod };
+    init.headers = { ...init.headers, Authorization: token };
+
     const res = await fetch(url.href, init);
 
     if (res.status === 401) {
@@ -82,7 +84,7 @@ const getResponseInit = (body?: ReqOptions['body']): RequestInit => {
   };
 };
 
-const buildUrl = (baseUrl: string, token: string, path?: ReqOptions['path']): string => {
+const buildUrl = (baseUrl: string, path?: ReqOptions['path']): string => {
   let url = baseUrl;
 
   if (path) {
@@ -93,5 +95,5 @@ const buildUrl = (baseUrl: string, token: string, path?: ReqOptions['path']): st
     });
   }
 
-  return `${url}?access_token=${token}`;
+  return url;
 };
