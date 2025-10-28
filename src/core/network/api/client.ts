@@ -3,7 +3,7 @@ import createDebug from 'debug';
 const debug = createDebug('one-me:client');
 
 const defaultOptions = {
-  baseUrl: 'https://botapi.max.ru',
+  baseUrl: 'https://platform-api.max.ru',
 } as const;
 
 export type ClientOptions = Partial<typeof defaultOptions>;
