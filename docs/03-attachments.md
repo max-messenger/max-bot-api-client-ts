@@ -38,7 +38,7 @@ await ctx.reply('Это фото загружено из файла', {
 ### При помощи ссылки
 Пока что доступно только для изображений:
 ```typescript
-const image = await ctx.api.uploadImage({ url: 'https://upload.wikimedia.org/wikipedia/commons/Image.png' });
+const image = await ctx.api.uploadImage({ url: 'https://max.ru/s/img/big-logo.png' });
 await ctx.reply('', { attachments: [image.toJson()] });
 ```
 
