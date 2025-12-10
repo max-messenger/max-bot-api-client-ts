@@ -92,6 +92,16 @@ await bot.api.sendMessageToChat(
   '**Привет!** _Добро пожаловать_ в [Max](https://dev.max.ru).',
   { format: 'markdown' },
 );
+
+// или используя метод reply
+
+bot.hears('ping', async (ctx) => {
+  await ctx.reply('**Привет!** _Добро пожаловать_ в [Max](https://dev.max.ru).', {
+    // 'link' прикрепляет оригинальное сообщение
+    link: { type: 'reply', mid: ctx.message.body.mid },
+    format: 'markdown',
+  });
+});
 ```
 #### HTML
 ```typescript
@@ -100,4 +110,14 @@ await bot.api.sendMessageToChat(
   '<b>Привет!</b> <i>Добро пожаловать</i> в <a href="https://dev.max.ru">Max</a>.',
   { format: 'html' },
 );
+
+// или используя метод reply
+
+bot.hears('ping', async (ctx) => {
+  await ctx.reply('<b>Привет!</b> <i>Добро пожаловать</i> в <a href="https://dev.max.ru">Max</a>.', {
+    // 'link' прикрепляет оригинальное сообщение
+    link: { type: 'reply', mid: ctx.message.body.mid },
+    format: 'html',
+  });
+});
 ```
