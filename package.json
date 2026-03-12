@@ -1,6 +1,6 @@
 {
   "name": "@maxhub/max-bot-api",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Max Bot Framework",
   "repository": "https://github.com/max-messenger/max-bot-api-client-ts",
   "author": "Juice Development",
@@ -36,20 +36,20 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "@types/node": "^22.5.5",
+    "@types/node": "^25.4.0",
     "@types/vcf": "^2.0.7",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^8.2.0",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-import": "^2.32.0",
     "mit-license": "^1.0.0",
-    "nodemon": "^3.1.7",
-    "typescript": "^5.4.2"
+    "nodemon": "^3.1.14",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "debug": "^4.3.7",
+    "debug": "^4.4.3",
     "vcf": "^2.1.2"
   }
 }
