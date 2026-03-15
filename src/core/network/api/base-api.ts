@@ -6,7 +6,7 @@ import type { ApiMethods } from './modules/types';
 type ApiCallFn<HTTPMethod extends keyof ApiMethods> = <Method extends keyof ApiMethods[HTTPMethod]>(
   method: Method,
   // @ts-ignore
-  options: ApiMethods[HTTPMethod][Method]['req']
+  options: ApiMethods[HTTPMethod][Method]['req'] & { signal?: AbortSignal }
   // @ts-ignore
 ) => Promise<ApiMethods[HTTPMethod][Method]['res']>;
 

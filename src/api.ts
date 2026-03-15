@@ -71,11 +71,12 @@ export class Api {
     text: string,
     extra?: SendMessageExtra,
   ) => {
+    const { signal, ...rest } = extra ?? {};
     const { message } = await this.raw.messages.send({
       chat_id: chatId,
       text,
-      ...extra,
-    });
+      ...rest,
+    }, { signal });
     return message;
   };
 
@@ -84,11 +85,12 @@ export class Api {
     text: string,
     extra?: SendMessageExtra,
   ) => {
+    const { signal, ...rest } = extra ?? {};
     const { message } = await this.raw.messages.send({
       user_id: userId,
       text,
-      ...extra,
-    });
+      ...rest,
+    }, { signal });
     return message;
   };
 

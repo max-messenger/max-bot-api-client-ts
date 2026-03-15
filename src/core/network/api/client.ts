@@ -14,7 +14,8 @@ export type ReqOptions = {
   method?: HTTPMethod;
   body?: object | null,
   query?: Record<string, string | number | boolean | null | undefined>,
-  path?: Record<string, string | number>
+  path?: Record<string, string | number>,
+  signal?: AbortSignal,
 };
 
 type CallOptions = {
@@ -49,6 +50,9 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
 
     const init: RequestInit = { ...getResponseInit(callOptions?.body), method: httpMethod };
     init.headers = { ...init.headers, Authorization: token };
+    if (callOptions.signal) {
+      init.signal = callOptions.signal;
+    }
 
     const res = await fetch(url.href, init);
 
