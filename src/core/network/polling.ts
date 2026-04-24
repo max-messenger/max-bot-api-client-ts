@@ -40,6 +40,13 @@ export class Polling {
             });
             return;
           }
+          if (err.name === 'TypeError') {
+            debug(`Failed to fetch updates, retrying after ${RETRY_INTERVAL}ms.`, err);
+            await new Promise((resolve) => {
+              setTimeout(resolve, RETRY_INTERVAL);
+            });
+            return;
+          }
         }
         throw err;
       }
