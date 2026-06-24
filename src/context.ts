@@ -89,6 +89,9 @@ type Sticker = {
 export class Context<U extends Update = Update> {
   match?: RegExpExecArray;
 
+  /** Arbitrary state storage shared across middleware chain */
+  state: Record<string | symbol, unknown> = {};
+
   constructor(
     readonly update: U,
     readonly api: Api,
