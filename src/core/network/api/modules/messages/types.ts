@@ -44,7 +44,9 @@ export type SendMessageDTO = {
   }
 };
 
-export type SendMessageExtra = Omit<FlattenReq<SendMessageDTO>, 'chat_id' | 'user_id' | 'text'>;
+export type SendMessageExtra = Omit<FlattenReq<SendMessageDTO>, 'chat_id' | 'user_id' | 'text'> & {
+  signal?: AbortSignal;
+};
 
 export type SendMessageResponse = {
   message: Message
