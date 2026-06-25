@@ -1,6 +1,6 @@
 {
   "name": "@maxhub/max-bot-api",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Max Bot Framework",
   "repository": "https://github.com/max-messenger/max-bot-api-client-ts",
   "author": "Juice Development",
