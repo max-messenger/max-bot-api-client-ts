@@ -33,9 +33,18 @@ export type ChatButton = {
   uuid?: string | null;
 };
 
+export type OpenAppButton = {
+  type: 'open_app';
+  text: string;
+  web_app?: string | null;
+  contact_id?: number | null;
+  payload?: string | null;
+};
+
 export type Button =
   | CallbackButton
   | LinkButton
   | RequestContactButton
   | RequestGeoLocationButton
-  | ChatButton;
+  | ChatButton
+  | OpenAppButton;
