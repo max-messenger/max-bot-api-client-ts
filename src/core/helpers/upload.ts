@@ -1,3 +1,4 @@
+import axios from 'axios';
 import * as fs from 'fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -9,6 +10,7 @@ type FileSource = string | fs.ReadStream | Buffer;
 
 type DefaultOptions = {
   timeout?: number;
+  onProgress?: (progress: number) => void;
 };
 
 type UploadFromSourceOptions = {
@@ -78,27 +80,32 @@ type UploadRangeChunkParams = {
  */
 async function uploadRangeChunk({
   uploadUrl, chunk, startByte, endByte, fileSize, fileName,
-}: UploadRangeChunkParams, { signal }: { signal?: AbortSignal } = {}) {
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'POST',
-    body: chunk,
-    headers: {
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
-      'Content-Type': 'application/x-binary; charset=x-user-defined',
-      'X-File-Name': fileName,
-      'X-Uploading-Mode': 'parallel',
-      Connection: 'keep-alive',
-    },
-    signal,
-  });
+}: UploadRangeChunkParams, {
+  signal,
+}: {
+  signal?: AbortSignal,
+} = {}) {
+  try {
+    const uploadRes = await axios.post(uploadUrl, chunk, {
+      headers: {
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
+        'Content-Type': 'application/x-binary; charset=x-user-defined',
+        'X-File-Name': fileName,
+        'X-Uploading-Mode': 'parallel',
+        Connection: 'keep-alive',
+      },
+      signal,
+      responseType: 'text',
+    });
 
-  if (uploadRes.status >= 400) {
-    const error = await uploadRes.json();
-    throw new MaxError(uploadRes.status, error);
+    return uploadRes.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new MaxError(error.response.status, error.response.data);
+    }
+    throw error;
   }
-
-  return uploadRes.text();
 }
 
 /**
@@ -120,11 +127,17 @@ type UploadStreamParams = {
  */
 async function uploadRange(
   { uploadUrl, file }: UploadStreamParams,
-  options: { signal?: AbortSignal } | undefined,
+  options: {
+    signal?: AbortSignal,
+    onProgress?: (progress: number) => void,
+  } | undefined,
 ) {
   const size = file.contentLength;
   let startByte = 0;
   let endByte = 0;
+  let uploadedBytes = 0;
+
+  const { onProgress, signal } = options || {};
 
   for await (const chunk of file.stream) {
     endByte = startByte + chunk.length - 1;
@@ -135,9 +148,14 @@ async function uploadRange(
       chunk,
       fileName: file.fileName,
       fileSize: size,
-    }, options);
+    }, signal ? {
+      signal,
+    } : undefined);
 
     startByte = endByte + 1;
+    uploadedBytes += chunk.length;
+
+    onProgress?.(uploadedBytes / size);
   }
 }
 
@@ -146,7 +164,13 @@ async function uploadRange(
  */
 async function uploadMultipart<Res>(
   { uploadUrl, file }: UploadStreamParams,
-  { signal }: { signal?: AbortSignal } = {},
+  {
+    signal,
+    onProgress,
+  }: {
+    signal?: AbortSignal,
+    onProgress?: (progress: number) => void,
+  } = {},
 ): Promise<Res> {
   const body = new FormData();
   body.append('data', {
@@ -156,15 +180,19 @@ async function uploadMultipart<Res>(
     size: file.contentLength,
   } as unknown as File);
 
-  const result = await fetch(uploadUrl, {
-    method: 'POST',
-    body,
+  const result = await axios.post<Res>(uploadUrl, body, {
     signal,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    onUploadProgress: onProgress ? ({
+      progress,
+      loaded,
+      total,
+    }) => onProgress(progress || (Math.round(loaded / (total || 1)))) : undefined,
   });
 
-  const response = await result.json();
-
-  return response as Res;
+  return result.data;
 }
 
 export class Upload {
@@ -228,6 +256,7 @@ export class Upload {
           file,
           uploadUrl,
           abortController: uploadController,
+          onProgress: options?.onProgress ?? undefined,
           token,
         });
       }
@@ -236,6 +265,7 @@ export class Upload {
         file,
         uploadUrl,
         abortController: uploadController,
+        onProgress: options?.onProgress ?? undefined,
         token,
       });
     } finally {
@@ -244,15 +274,19 @@ export class Upload {
   };
 
   private uploadFromStream = async <Res>({
-    file, uploadUrl, token, abortController,
+    file, uploadUrl, token, abortController, onProgress,
   }: {
     file: FileStream,
     uploadUrl: string,
     abortController?: AbortController,
+    onProgress?: (progress: number) => void,
     token?: string
   }): Promise<Res> => {
     if (token) {
-      await uploadRange({ file, uploadUrl }, abortController);
+      await uploadRange({ file, uploadUrl }, {
+        signal: abortController?.signal,
+        onProgress,
+      });
 
       return {
         token,
@@ -261,25 +295,40 @@ export class Upload {
         abortController,
       } as Res;
     }
-    return uploadMultipart<Res>({ file, uploadUrl }, abortController);
+    return uploadMultipart<Res>({ file, uploadUrl }, {
+      signal: abortController?.signal,
+      onProgress,
+    });
   };
 
-  private uploadFromBuffer = async <Res>({ file, uploadUrl, abortController }: {
+  private uploadFromBuffer = async <Res>({
+    file,
+    uploadUrl,
+    abortController,
+    onProgress,
+  }: {
     file: FileBuffer,
     uploadUrl: string,
     abortController?: AbortController,
+    onProgress?: (progress: number) => void,
     token?: string,
   }): Promise<Res> => {
     const formData = new FormData();
     formData.append('data', new Blob([file.buffer]), file.fileName);
 
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      body: formData,
+    const res = await axios.post<Res>(uploadUrl, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
       signal: abortController?.signal,
+      onUploadProgress: onProgress ? ({
+        progress,
+        loaded,
+        total,
+      }) => onProgress(progress || (Math.round(loaded / (total || 1)))) : undefined,
     });
 
-    return await res.json() as Res;
+    return res.data;
   };
 
   image = async ({ timeout, ...source }: UploadImageOptions) => {
