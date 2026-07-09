@@ -1,5 +1,5 @@
 import { ReqOptions } from '../client';
-import type { EditMyInfoDTO, EditMyInfoResponse, GetMyInfoResponse } from './bots/types';
+import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
 import type {
   AddChatMembersDTO, AddChatMembersResponse,
   EditChatInfoDTO,
@@ -114,9 +114,9 @@ export type ApiMethods = {
     }
   },
   PATCH: {
-    me: {
-      req: EditMyInfoDTO,
-      res: EditMyInfoResponse,
+    'me/commands': {
+      req: EditMyCommandsDTO,
+      res: EditMyCommandsResponse,
     },
     'chats/{chat_id}': {
       req: EditChatInfoDTO,

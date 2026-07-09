@@ -15,7 +15,7 @@ import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 import type {
   AnswerOnCallbackExtra, Client, DeleteMessageExtra,
   EditMessageExtra, SendMessageExtra, BotCommand,
-  EditMyInfoDTO, FlattenReq, GetUpdatesDTO, UpdateType,
+  FlattenReq, GetUpdatesDTO, UpdateType,
 } from './core/network/api';
 import type {
   EditChatExtra,
@@ -38,16 +38,12 @@ export class Api {
     return this.raw.bots.getMyInfo();
   };
 
-  editMyInfo = async (extra: FlattenReq<EditMyInfoDTO>) => {
-    return this.raw.bots.editMyInfo(extra);
-  };
-
   setMyCommands = async (commands: BotCommand[]) => {
-    return this.editMyInfo({ commands });
+    return this.raw.bots.editMyCommands({ commands });
   };
 
   deleteMyCommands = async () => {
-    return this.editMyInfo({ commands: [] });
+    return this.raw.bots.editMyCommands({ commands: [] });
   };
 
   getAllChats = async (extra: GetAllChatsExtra = {}) => {
