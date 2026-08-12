@@ -48,6 +48,8 @@ export type SendMessageExtra = Omit<FlattenReq<SendMessageDTO>, 'chat_id' | 'use
   signal?: AbortSignal;
 };
 
+export type SendMessageOptions = { signal?: AbortSignal };
+
 export type SendMessageResponse = {
   message: Message
 };

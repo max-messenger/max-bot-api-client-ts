@@ -70,8 +70,22 @@ console.log(message.body.mid);
 > });
 > ```
 
+Или воспользоваться методом контекста `reply`:
+```typescript
+bot.hears('ping', async (ctx) => {
+  // 'reply' — псевдоним метода 'ctx.api.sendMessageToChat' в этом же чате
+  await ctx.reply('pong', {
+    // 'link' прикрепляет оригинальное сообщение
+    link: { type: 'reply', mid: ctx.message.body.mid },
+  });
+});
+```
+
 ### Отмена отправки
-Методы `sendMessageToChat` и `sendMessageToUser` поддерживают `AbortSignal` для отмены запроса. Это полезно, когда сервер долго обрабатывает вложение (`attachment.not.ready`) и вы хотите прервать ожидание:
+
+Методы `sendMessageToChat` и `sendMessageToUser` поддерживают `AbortSignal` для отмены запроса. 
+Это полезно, когда сервер долго обрабатывает вложение (`attachment.not.ready`) и вы хотите прервать ожидание:
+
 ```typescript
 const controller = new AbortController();
 
@@ -85,19 +99,8 @@ await bot.api.sendMessageToChat(54321, 'Текст', {
 ```
 
 > ℹ️ При получении ошибки `attachment.not.ready` SDK автоматически повторяет
-> запрос до 10 раз с экспоненциальной задержкой (1 с, 2 с, 4 с, ...).
+> запрос до 3-х раз с экспоненциальной задержкой (1 с, 2 с, 4 с).
 > Если передан `signal`, повторы прекращаются при его отмене.
-
-Или воспользоваться методом контекста `reply`:
-```typescript
-bot.hears('ping', async (ctx) => {
-  // 'reply' — псевдоним метода 'ctx.api.sendMessageToChat' в этом же чате
-  await ctx.reply('pong', {
-    // 'link' прикрепляет оригинальное сообщение
-    link: { type: 'reply', mid: ctx.message.body.mid },
-  });
-});
-```
 
 ## Форматирование сообщений
 > Подробности про форматирование смотрите в [официальной документации](https://dev.max.ru/).
