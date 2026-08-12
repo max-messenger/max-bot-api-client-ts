@@ -3,7 +3,7 @@ import createDebug from 'debug';
 import type { Api } from '../../api';
 import { MaxError, Update, UpdateType } from './api';
 
-const debug = createDebug('one-me:polling');
+const debug = createDebug('max:polling');
 
 const RETRY_INTERVAL = 5_000; // ms
 

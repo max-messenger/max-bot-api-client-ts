@@ -10,7 +10,7 @@ import { Polling } from './core/network/polling';
 
 import { Api } from './api';
 
-const debug = createDebug('one-me:main');
+const debug = createDebug('max:main');
 
 type BotConfig<Ctx extends Context> = {
   clientOptions?: ClientOptions;

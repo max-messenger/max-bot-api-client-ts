@@ -81,6 +81,27 @@ bot.hears('ping', async (ctx) => {
 });
 ```
 
+### Отмена отправки
+
+Методы `sendMessageToChat` и `sendMessageToUser` поддерживают `AbortSignal` для отмены запроса. 
+Это полезно, когда сервер долго обрабатывает вложение (`attachment.not.ready`) и вы хотите прервать ожидание:
+
+```typescript
+const controller = new AbortController();
+
+// Отменить через 30 секунд
+setTimeout(() => controller.abort(), 30_000);
+
+await bot.api.sendMessageToChat(54321, 'Текст', {
+  attachments: [image.toJson()],
+  signal: controller.signal,
+});
+```
+
+> ℹ️ При получении ошибки `attachment.not.ready` SDK автоматически повторяет
+> запрос до 3-х раз с экспоненциальной задержкой (1 с, 2 с, 4 с).
+> Если передан `signal`, повторы прекращаются при его отмене.
+
 ## Форматирование сообщений
 > Подробности про форматирование смотрите в [официальной документации](https://dev.max.ru/docs-api).
 
