@@ -1,6 +1,6 @@
 import createDebug from 'debug';
 
-const debug = createDebug('one-me:client');
+const debug = createDebug('max:client');
 
 const defaultOptions = {
   baseUrl: 'https://platform-api.max.ru',

@@ -14,7 +14,7 @@ import {
 import type { SendMessageDTO, DeleteMessageDTO } from './types';
 import { SEND_MESSAGE_RETRIES_COUNT, SEND_MESSAGE_RETRY_DELAY_BASE_TIME } from './const';
 
-const debug = createDebug('one-me:messages');
+const debug = createDebug('max:messages');
 
 export class MessagesApi extends BaseApi {
   get = async ({ ...query }: FlattenReq<GetMessagesDTO>): Promise<GetMessagesResponse> => {
