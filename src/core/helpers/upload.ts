@@ -3,11 +3,16 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
 import { type Api } from '../../api';
-import { MaxError, type UploadType } from '../network/api';
+import { UploadType } from '../network/api';
 import { DEFAULT_UPLOAD_TIMEOUT } from '../../shared/model/config';
-import { XhrClient, XhrRequestOptions } from '../network/xhr';
+import { XhrClient, XhrProgressEvent, XhrRequestOptions } from '../network/xhr';
 
 type FileSource = string | fs.ReadStream | Buffer;
+
+type UploadOptions = {
+  signal?: AbortSignal;
+  onUploadProgress?: (event: XhrProgressEvent) => void;
+};
 
 type DefaultOptions = {
   timeout?: number;
@@ -228,7 +233,11 @@ export class Upload {
       size: file.contentLength,
     } as unknown as File);
 
-    const result = await this.xhrClient.post<Res>(uploadUrl, body, { onUploadProgress, signal, responseType: 'json' });
+    const result = await this.xhrClient.post<Res>(
+      uploadUrl,
+      body,
+      { onUploadProgress, signal, responseType: 'json' },
+    );
 
     return result.data as Res;
   };
@@ -236,13 +245,13 @@ export class Upload {
   /**
    * Загрузить чанк данных через Content-Range запрос
    */
-
   private uploadRangeChunk = async ({
-    uploadUrl, chunk, startByte, endByte, fileSize, fileName,
-  }: UploadRangeChunkParams, { signal }: { signal?: AbortSignal } = {}) => {
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'POST',
-      body: chunk,
+    uploadUrl, chunk, startByte, endByte, fileSize, fileName, onUploadProgress,
+  }: UploadRangeChunkParams & { onUploadProgress?: XhrRequestOptions['onUploadProgress'] }, { signal }: { signal?: AbortSignal } = {}) => {
+    const result = await this.xhrClient.post<string>(uploadUrl, chunk, {
+      responseType: 'text',
+      signal,
+      onUploadProgress,
       headers: {
         'Content-Disposition': `attachment; filename="${fileName}"`,
         'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
@@ -251,40 +260,74 @@ export class Upload {
         'X-Uploading-Mode': 'parallel',
         Connection: 'keep-alive',
       },
-      signal,
     });
 
-    if (uploadRes.status >= 400) {
-      const error = await uploadRes.json();
-      throw new MaxError(uploadRes.status, error);
-    }
+    return result.data;
+  };
 
-    return uploadRes.text();
+  /**
+   * Фабрика/хелпер для генерации прогресс-события всего файла при загрузке чанками
+   */
+  private createProgressHandler = (
+    size: number,
+    progressContext: { totalUploadedBefore: number },
+    onUploadProgress?: (event: XhrProgressEvent) => void,
+  ) => {
+    if (!onUploadProgress) return undefined;
+
+    return (chunkEvent: XhrProgressEvent) => {
+      const totalLoaded = Math.min(progressContext.totalUploadedBefore + chunkEvent.loaded, size);
+      const ratio = size > 0 ? totalLoaded / size : 0;
+      const percent = Math.min(Math.round(ratio * 100), 100);
+
+      onUploadProgress({
+        ratio,
+        loaded: totalLoaded,
+        total: size,
+        percent,
+      });
+    };
   };
 
   /**
    * Загрузить файл через Content-Range запрос
    */
-
   private uploadRange = async (
     { uploadUrl, file }: UploadStreamParams,
-    options: { signal?: AbortSignal } | undefined,
+    options: UploadOptions | undefined,
   ) => {
     const size = file.contentLength;
     let startByte = 0;
     let endByte = 0;
 
+    const progressContext = { totalUploadedBefore: 0 };
+
+    const handleChunkProgress = this.createProgressHandler(
+      size,
+      progressContext,
+      options?.onUploadProgress,
+    );
+
     for await (const chunk of file.stream) {
       endByte = startByte + chunk.length - 1;
-      await this.uploadRangeChunk({
-        uploadUrl,
-        startByte,
-        endByte,
-        chunk,
-        fileName: file.fileName,
-        fileSize: size,
-      }, options);
+      const currentChunkLength = chunk.length;
 
+      await this.uploadRangeChunk(
+        {
+          uploadUrl,
+          startByte,
+          endByte,
+          chunk,
+          fileName: file.fileName,
+          fileSize: size,
+          onUploadProgress: handleChunkProgress,
+        },
+        {
+          signal: options?.signal,
+        },
+      );
+
+      progressContext.totalUploadedBefore += currentChunkLength;
       startByte = endByte + 1;
     }
   };
@@ -299,7 +342,7 @@ export class Upload {
     token?: string
   }): Promise<Res> => {
     if (token) {
-      await this.uploadRange({ file, uploadUrl }, abortController);
+      await this.uploadRange({ file, uploadUrl }, { signal: abortController?.signal });
 
       return {
         token,
@@ -308,7 +351,10 @@ export class Upload {
         abortController,
       } as Res;
     }
-    return this.uploadMultipart<Res>({ file, uploadUrl, onUploadProgress }, abortController);
+    return this.uploadMultipart<Res>(
+      { file, uploadUrl, onUploadProgress },
+      { signal: abortController?.signal },
+    );
   };
 
   private uploadFromBuffer = async <Res>({
