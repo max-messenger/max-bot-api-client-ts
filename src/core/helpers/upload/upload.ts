@@ -2,101 +2,26 @@ import * as fs from 'fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
-import { type Api } from '../../api';
-import { UploadType } from '../network/api';
-import { DEFAULT_UPLOAD_TIMEOUT } from '../../shared/model/config';
-import { XhrClient, XhrProgressEvent, XhrRequestOptions } from '../network/xhr';
-
-type FileSource = string | fs.ReadStream | Buffer;
-
-type UploadOptions = {
-  signal?: AbortSignal;
-  onUploadProgress?: (event: XhrProgressEvent) => void;
-};
-
-type DefaultOptions = {
-  timeout?: number;
-};
-
-type UploadFromSourceOptions = {
-  source: FileSource
-  onProgress?: XhrRequestOptions['onUploadProgress'];
-};
-
-type UploadFromUrlOptions = {
-  url: string
-  onProgress?: XhrRequestOptions['onUploadProgress'];
-};
-
-type UploadFromUrlOrSourceOptions = UploadFromSourceOptions | UploadFromUrlOptions;
-
-type BaseFile = {
-  fileName: string
-};
-
-type FileStream = BaseFile & {
-  stream: fs.ReadStream;
-  contentLength: number;
-};
-
-type FileBuffer = BaseFile & {
-  buffer: Buffer;
-};
-
-type UploadFile = FileStream | FileBuffer;
-
-export type UploadImageOptions = UploadFromUrlOrSourceOptions & DefaultOptions;
-export type UploadVideoOptions = UploadFromSourceOptions & DefaultOptions;
-export type UploadFileOptions = UploadFromSourceOptions & DefaultOptions;
-export type UploadAudioOptions = UploadFromSourceOptions & DefaultOptions;
-
-/**
- * Параметры загрузки чатка через Content-Range
- */
-type UploadRangeChunkParams = {
-  /**
-   * URL для загрузки файла
-   */
-  uploadUrl: string;
-  /**
-   * Чанк-данных для загрузки
-   */
-  chunk: Buffer | string;
-  /**
-   * Начальный байт в общем потоке файла
-   */
-  startByte: number;
-  /**
-   * Конечный байт в общем потоке файла
-   */
-  endByte: number;
-  /**
-   * Общий размер файла
-   */
-  fileSize: number;
-  /**
-   * Имя файла для загрузки
-   */
-  fileName: string;
-};
-
-/**
- * Параметры загрузки данных через Content-Range или Multipart запрос
- */
-type UploadStreamParams = {
-  /**
-   * Файл для загрузки
-   */
-  file: FileStream;
-  /**
-   * URL для загрузки файла
-   */
-  uploadUrl: string;
-  /**
-   * Коллбек для получения статуса прогресса
-   */
-  onUploadProgress?: XhrRequestOptions['onUploadProgress'];
-};
+import { type Api } from '../../../api';
+import type { UploadType } from '../../network/api';
+import { DEFAULT_UPLOAD_TIMEOUT } from '../../../shared/model/config';
+import { XhrClient } from '../../network/xhr';
+import type { XhrProgressEvent } from '../../network/xhr';
+import {
+  DefaultOptions,
+  FileSource,
+  UploadAudioOptions,
+  UploadFile,
+  UploadFileOptions,
+  UploadFromBufferParams,
+  UploadFromStreamParams,
+  UploadImageOptions,
+  UploadProgressCallback,
+  UploadRangeChunkParams,
+  UploadRequestOptions,
+  UploadStreamParams,
+  UploadVideoOptions,
+} from './types';
 
 export class Upload {
   xhrClient: XhrClient;
@@ -202,7 +127,6 @@ export class Upload {
           file,
           uploadUrl,
           abortController: uploadController,
-          // onProgress: options?.onProgress ?? undefined,
           token,
         });
       }
@@ -211,7 +135,6 @@ export class Upload {
         file,
         uploadUrl,
         abortController: uploadController,
-        // onProgress: options?.onProgress ?? undefined,
         token,
       });
     } finally {
@@ -219,12 +142,50 @@ export class Upload {
     }
   };
 
+  private uploadFromStream = async <Res>({
+    file, uploadUrl, token, abortController, onUploadProgress,
+  }: UploadFromStreamParams): Promise<Res> => {
+    if (token) {
+      await this.uploadRange(
+        { file, uploadUrl, onUploadProgress },
+        { signal: abortController?.signal },
+      );
+
+      return {
+        token,
+        file,
+        uploadUrl,
+        abortController,
+      } as Res;
+    }
+
+    return this.uploadMultipart<Res>(
+      { file, uploadUrl, onUploadProgress },
+      { signal: abortController?.signal },
+    );
+  };
+
+  private uploadFromBuffer = async <Res>({
+    file, uploadUrl, abortController, onUploadProgress,
+  }: UploadFromBufferParams): Promise<Res> => {
+    const formData = new FormData();
+    formData.append('data', new Blob([file.buffer]), file.fileName);
+
+    const result = await this.xhrClient.post<Res>(uploadUrl, formData, {
+      signal: abortController?.signal,
+      onUploadProgress,
+    });
+
+    return result.data as Res;
+  };
+
   /**
    * Загрузить файл через Multipart запрос
    */
-
-  private uploadMultipart = async <Res>({ uploadUrl, file, onUploadProgress }: UploadStreamParams,
-    { signal }: { signal?: AbortSignal } = {}) => {
+  private uploadMultipart = async <Res>(
+    { uploadUrl, file, onUploadProgress }: UploadStreamParams,
+    options: UploadRequestOptions = {},
+  ) => {
     const body = new FormData();
     body.append('data', {
       [Symbol.toStringTag]: 'File',
@@ -236,7 +197,7 @@ export class Upload {
     const result = await this.xhrClient.post<Res>(
       uploadUrl,
       body,
-      { onUploadProgress, signal, responseType: 'json' },
+      { onUploadProgress, signal: options.signal, responseType: 'json' },
     );
 
     return result.data as Res;
@@ -245,12 +206,15 @@ export class Upload {
   /**
    * Загрузить чанк данных через Content-Range запрос
    */
-  private uploadRangeChunk = async ({
-    uploadUrl, chunk, startByte, endByte, fileSize, fileName, onUploadProgress,
-  }: UploadRangeChunkParams & { onUploadProgress?: XhrRequestOptions['onUploadProgress'] }, { signal }: { signal?: AbortSignal } = {}) => {
+  private uploadRangeChunk = async (
+    {
+      uploadUrl, chunk, startByte, endByte, fileSize, fileName, onUploadProgress,
+    }: UploadRangeChunkParams,
+    options: UploadRequestOptions = {},
+  ) => {
     const result = await this.xhrClient.post<string>(uploadUrl, chunk, {
       responseType: 'text',
-      signal,
+      signal: options.signal,
       onUploadProgress,
       headers: {
         'Content-Disposition': `attachment; filename="${fileName}"`,
@@ -266,12 +230,12 @@ export class Upload {
   };
 
   /**
-   * Фабрика/хелпер для генерации прогресс-события всего файла при загрузке чанками
+   * Хелпер для агрегации прогресса отдельных чанков в прогресс всего файла
    */
   private createProgressHandler = (
     size: number,
     progressContext: { totalUploadedBefore: number },
-    onUploadProgress?: (event: XhrProgressEvent) => void,
+    onUploadProgress?: UploadProgressCallback,
   ) => {
     if (!onUploadProgress) return undefined;
 
@@ -294,7 +258,7 @@ export class Upload {
    */
   private uploadRange = async (
     { uploadUrl, file }: UploadStreamParams,
-    options: UploadOptions | undefined,
+    options: UploadRequestOptions = {},
   ) => {
     const size = file.contentLength;
     let startByte = 0;
@@ -305,7 +269,7 @@ export class Upload {
     const handleChunkProgress = this.createProgressHandler(
       size,
       progressContext,
-      options?.onUploadProgress,
+      options.onUploadProgress,
     );
 
     for await (const chunk of file.stream) {
@@ -323,57 +287,12 @@ export class Upload {
           onUploadProgress: handleChunkProgress,
         },
         {
-          signal: options?.signal,
+          signal: options.signal,
         },
       );
 
       progressContext.totalUploadedBefore += currentChunkLength;
       startByte = endByte + 1;
     }
-  };
-
-  private uploadFromStream = async <Res>({
-    file, uploadUrl, token, abortController, onUploadProgress,
-  }: {
-    file: FileStream,
-    uploadUrl: string,
-    abortController?: AbortController,
-    onUploadProgress?: XhrRequestOptions['onUploadProgress'];
-    token?: string
-  }): Promise<Res> => {
-    if (token) {
-      await this.uploadRange({ file, uploadUrl }, { signal: abortController?.signal });
-
-      return {
-        token,
-        file,
-        uploadUrl,
-        abortController,
-      } as Res;
-    }
-    return this.uploadMultipart<Res>(
-      { file, uploadUrl, onUploadProgress },
-      { signal: abortController?.signal },
-    );
-  };
-
-  private uploadFromBuffer = async <Res>({
-    file, uploadUrl, abortController, onUploadProgress,
-  }: {
-    file: FileBuffer,
-    uploadUrl: string,
-    abortController?: AbortController,
-    onUploadProgress?: XhrRequestOptions['onUploadProgress'];
-    token?: string,
-  }): Promise<Res> => {
-    const formData = new FormData();
-    formData.append('data', new Blob([file.buffer]), file.fileName);
-
-    const result = await this.xhrClient.post<Res>(uploadUrl, formData, {
-      signal: abortController?.signal,
-      onUploadProgress,
-    });
-
-    return result.data as Res;
   };
 }

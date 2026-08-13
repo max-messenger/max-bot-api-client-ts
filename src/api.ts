@@ -7,7 +7,10 @@ import {
 import type { MaybeArray } from './core/helpers/types';
 import { Upload } from './core/helpers/upload';
 import type {
-  UploadFileOptions, UploadImageOptions, UploadVideoOptions, UploadAudioOptions,
+  UploadFileOptions,
+  UploadImageOptions,
+  UploadVideoOptions,
+  UploadAudioOptions,
 } from './core/helpers/upload';
 
 import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
