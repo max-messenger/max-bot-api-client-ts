@@ -1,24 +1,26 @@
-import axios from 'axios';
 import * as fs from 'fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
 import { type Api } from '../../api';
 import { MaxError, type UploadType } from '../network/api';
+import { DEFAULT_UPLOAD_TIMEOUT } from '../../shared/model/config';
+import { XhrClient, XhrRequestOptions } from '../network/xhr';
 
 type FileSource = string | fs.ReadStream | Buffer;
 
 type DefaultOptions = {
   timeout?: number;
-  onProgress?: (progress: number) => void;
 };
 
 type UploadFromSourceOptions = {
   source: FileSource
+  onProgress?: XhrRequestOptions['onUploadProgress'];
 };
 
 type UploadFromUrlOptions = {
   url: string
+  onProgress?: XhrRequestOptions['onUploadProgress'];
 };
 
 type UploadFromUrlOrSourceOptions = UploadFromSourceOptions | UploadFromUrlOptions;
@@ -42,8 +44,6 @@ export type UploadImageOptions = UploadFromUrlOrSourceOptions & DefaultOptions;
 export type UploadVideoOptions = UploadFromSourceOptions & DefaultOptions;
 export type UploadFileOptions = UploadFromSourceOptions & DefaultOptions;
 export type UploadAudioOptions = UploadFromSourceOptions & DefaultOptions;
-
-const DEFAULT_UPLOAD_TIMEOUT = 20_000; // ms
 
 /**
  * Параметры загрузки чатка через Content-Range
@@ -76,39 +76,6 @@ type UploadRangeChunkParams = {
 };
 
 /**
- * Загрузить чанк данных через Content-Range запрос
- */
-async function uploadRangeChunk({
-  uploadUrl, chunk, startByte, endByte, fileSize, fileName,
-}: UploadRangeChunkParams, {
-  signal,
-}: {
-  signal?: AbortSignal,
-} = {}) {
-  try {
-    const uploadRes = await axios.post(uploadUrl, chunk, {
-      headers: {
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
-        'Content-Type': 'application/x-binary; charset=x-user-defined',
-        'X-File-Name': fileName,
-        'X-Uploading-Mode': 'parallel',
-        Connection: 'keep-alive',
-      },
-      signal,
-      responseType: 'text',
-    });
-
-    return uploadRes.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new MaxError(error.response.status, error.response.data);
-    }
-    throw error;
-  }
-}
-
-/**
  * Параметры загрузки данных через Content-Range или Multipart запрос
  */
 type UploadStreamParams = {
@@ -120,83 +87,18 @@ type UploadStreamParams = {
    * URL для загрузки файла
    */
   uploadUrl: string;
+  /**
+   * Коллбек для получения статуса прогресса
+   */
+  onUploadProgress?: XhrRequestOptions['onUploadProgress'];
 };
 
-/**
- * Загрузить файл через Content-Range запрос
- */
-async function uploadRange(
-  { uploadUrl, file }: UploadStreamParams,
-  options: {
-    signal?: AbortSignal,
-    onProgress?: (progress: number) => void,
-  } | undefined,
-) {
-  const size = file.contentLength;
-  let startByte = 0;
-  let endByte = 0;
-  let uploadedBytes = 0;
-
-  const { onProgress, signal } = options || {};
-
-  for await (const chunk of file.stream) {
-    endByte = startByte + chunk.length - 1;
-    await uploadRangeChunk({
-      uploadUrl,
-      startByte,
-      endByte,
-      chunk,
-      fileName: file.fileName,
-      fileSize: size,
-    }, signal ? {
-      signal,
-    } : undefined);
-
-    startByte = endByte + 1;
-    uploadedBytes += chunk.length;
-
-    onProgress?.(uploadedBytes / size);
-  }
-}
-
-/**
- * Загрузить файл через Multipart запрос
- */
-async function uploadMultipart<Res>(
-  { uploadUrl, file }: UploadStreamParams,
-  {
-    signal,
-    onProgress,
-  }: {
-    signal?: AbortSignal,
-    onProgress?: (progress: number) => void,
-  } = {},
-): Promise<Res> {
-  const body = new FormData();
-  body.append('data', {
-    [Symbol.toStringTag]: 'File',
-    name: file.fileName,
-    stream: () => file.stream,
-    size: file.contentLength,
-  } as unknown as File);
-
-  const result = await axios.post<Res>(uploadUrl, body, {
-    signal,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-    onUploadProgress: onProgress ? ({
-      progress,
-      loaded,
-      total,
-    }) => onProgress(progress || (Math.round(loaded / (total || 1)))) : undefined,
-  });
-
-  return result.data;
-}
-
 export class Upload {
-  constructor(private readonly api: Api) {}
+  xhrClient: XhrClient;
+
+  constructor(private readonly api: Api) {
+    this.xhrClient = new XhrClient();
+  }
 
   private getStreamFromSource = async (source: FileSource): Promise<UploadFile> => {
     if (typeof source === 'string') {
@@ -240,97 +142,6 @@ export class Upload {
     };
   };
 
-  private upload = async <Res>(type: UploadType, file: UploadFile, options?: DefaultOptions) => {
-    const res = await this.api.raw.uploads.getUploadUrl({ type });
-    const { url: uploadUrl, token } = res;
-
-    const uploadController = new AbortController();
-
-    const uploadInterval = setTimeout(() => {
-      uploadController.abort();
-    }, options?.timeout || DEFAULT_UPLOAD_TIMEOUT);
-
-    try {
-      if ('stream' in file) {
-        return await this.uploadFromStream<Res>({
-          file,
-          uploadUrl,
-          abortController: uploadController,
-          onProgress: options?.onProgress ?? undefined,
-          token,
-        });
-      }
-
-      return await this.uploadFromBuffer<Res>({
-        file,
-        uploadUrl,
-        abortController: uploadController,
-        onProgress: options?.onProgress ?? undefined,
-        token,
-      });
-    } finally {
-      clearTimeout(uploadInterval);
-    }
-  };
-
-  private uploadFromStream = async <Res>({
-    file, uploadUrl, token, abortController, onProgress,
-  }: {
-    file: FileStream,
-    uploadUrl: string,
-    abortController?: AbortController,
-    onProgress?: (progress: number) => void,
-    token?: string
-  }): Promise<Res> => {
-    if (token) {
-      await uploadRange({ file, uploadUrl }, {
-        signal: abortController?.signal,
-        onProgress,
-      });
-
-      return {
-        token,
-        file,
-        uploadUrl,
-        abortController,
-      } as Res;
-    }
-    return uploadMultipart<Res>({ file, uploadUrl }, {
-      signal: abortController?.signal,
-      onProgress,
-    });
-  };
-
-  private uploadFromBuffer = async <Res>({
-    file,
-    uploadUrl,
-    abortController,
-    onProgress,
-  }: {
-    file: FileBuffer,
-    uploadUrl: string,
-    abortController?: AbortController,
-    onProgress?: (progress: number) => void,
-    token?: string,
-  }): Promise<Res> => {
-    const formData = new FormData();
-    formData.append('data', new Blob([file.buffer]), file.fileName);
-
-    const res = await axios.post<Res>(uploadUrl, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      signal: abortController?.signal,
-      onUploadProgress: onProgress ? ({
-        progress,
-        loaded,
-        total,
-      }) => onProgress(progress || (Math.round(loaded / (total || 1)))) : undefined,
-    });
-
-    return res.data;
-  };
-
   image = async ({ timeout, ...source }: UploadImageOptions) => {
     if ('url' in source) {
       return { url: source.url };
@@ -368,5 +179,155 @@ export class Upload {
       id: number,
       token: string,
     }>('audio', fileBlob, options);
+  };
+
+  private upload = async <Res>(type: UploadType, file: UploadFile, options?: DefaultOptions) => {
+    const res = await this.api.raw.uploads.getUploadUrl({ type });
+    const { url: uploadUrl, token } = res;
+
+    const uploadController = new AbortController();
+
+    const uploadAbortTimeout = setTimeout(() => {
+      uploadController.abort();
+    }, options?.timeout || DEFAULT_UPLOAD_TIMEOUT);
+
+    try {
+      if ('stream' in file) {
+        return await this.uploadFromStream<Res>({
+          file,
+          uploadUrl,
+          abortController: uploadController,
+          // onProgress: options?.onProgress ?? undefined,
+          token,
+        });
+      }
+
+      return await this.uploadFromBuffer<Res>({
+        file,
+        uploadUrl,
+        abortController: uploadController,
+        // onProgress: options?.onProgress ?? undefined,
+        token,
+      });
+    } finally {
+      clearTimeout(uploadAbortTimeout);
+    }
+  };
+
+  /**
+   * Загрузить файл через Multipart запрос
+   */
+
+  private uploadMultipart = async <Res>({ uploadUrl, file, onUploadProgress }: UploadStreamParams,
+    { signal }: { signal?: AbortSignal } = {}) => {
+    const body = new FormData();
+    body.append('data', {
+      [Symbol.toStringTag]: 'File',
+      name: file.fileName,
+      stream: () => file.stream,
+      size: file.contentLength,
+    } as unknown as File);
+
+    const result = await this.xhrClient.post<Res>(uploadUrl, body, { onUploadProgress, signal, responseType: 'json' });
+
+    return result.data as Res;
+  };
+
+  /**
+   * Загрузить чанк данных через Content-Range запрос
+   */
+
+  private uploadRangeChunk = async ({
+    uploadUrl, chunk, startByte, endByte, fileSize, fileName,
+  }: UploadRangeChunkParams, { signal }: { signal?: AbortSignal } = {}) => {
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'POST',
+      body: chunk,
+      headers: {
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
+        'Content-Type': 'application/x-binary; charset=x-user-defined',
+        'X-File-Name': fileName,
+        'X-Uploading-Mode': 'parallel',
+        Connection: 'keep-alive',
+      },
+      signal,
+    });
+
+    if (uploadRes.status >= 400) {
+      const error = await uploadRes.json();
+      throw new MaxError(uploadRes.status, error);
+    }
+
+    return uploadRes.text();
+  };
+
+  /**
+   * Загрузить файл через Content-Range запрос
+   */
+
+  private uploadRange = async (
+    { uploadUrl, file }: UploadStreamParams,
+    options: { signal?: AbortSignal } | undefined,
+  ) => {
+    const size = file.contentLength;
+    let startByte = 0;
+    let endByte = 0;
+
+    for await (const chunk of file.stream) {
+      endByte = startByte + chunk.length - 1;
+      await this.uploadRangeChunk({
+        uploadUrl,
+        startByte,
+        endByte,
+        chunk,
+        fileName: file.fileName,
+        fileSize: size,
+      }, options);
+
+      startByte = endByte + 1;
+    }
+  };
+
+  private uploadFromStream = async <Res>({
+    file, uploadUrl, token, abortController, onUploadProgress,
+  }: {
+    file: FileStream,
+    uploadUrl: string,
+    abortController?: AbortController,
+    onUploadProgress?: XhrRequestOptions['onUploadProgress'];
+    token?: string
+  }): Promise<Res> => {
+    if (token) {
+      await this.uploadRange({ file, uploadUrl }, abortController);
+
+      return {
+        token,
+        file,
+        uploadUrl,
+        abortController,
+      } as Res;
+    }
+    return this.uploadMultipart<Res>({ file, uploadUrl, onUploadProgress }, abortController);
+  };
+
+  private uploadFromBuffer = async <Res>({
+    file, uploadUrl, abortController, onUploadProgress,
+  }: {
+    file: FileBuffer,
+    uploadUrl: string,
+    abortController?: AbortController,
+    onUploadProgress?: XhrRequestOptions['onUploadProgress'];
+    token?: string,
+  }): Promise<Res> => {
+    const formData = new FormData();
+    formData.append('data', new Blob([file.buffer]), file.fileName);
+
+    const result = await this.xhrClient.post<Res>(uploadUrl, formData, {
+      signal: abortController?.signal,
+      onUploadProgress,
+    });
+
+    return result.data as Res;
   };
 }
