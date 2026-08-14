@@ -81,7 +81,7 @@ async function uploadRangeChunk({
 }: UploadRangeChunkParams, { signal }: { signal?: AbortSignal } = {}) {
   const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
-    body: chunk,
+    body: typeof chunk === 'string' ? chunk : new Uint8Array(chunk),
     headers: {
       'Content-Disposition': `attachment; filename="${fileName}"`,
       'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
@@ -188,7 +188,7 @@ export class Upload {
       };
     }
 
-    if (source instanceof Buffer) {
+    if (Buffer.isBuffer(source)) {
       return {
         buffer: source,
         fileName: randomUUID(),
@@ -271,7 +271,7 @@ export class Upload {
     token?: string,
   }): Promise<Res> => {
     const formData = new FormData();
-    formData.append('data', new Blob([file.buffer]), file.fileName);
+    formData.append('data', new Blob([new Uint8Array(file.buffer)]), file.fileName);
 
     const res = await fetch(uploadUrl, {
       method: 'POST',
