@@ -1,15 +1,20 @@
 import { setTimeout } from 'node:timers/promises';
+import createDebug from 'debug';
 import { MaxError } from '../../error';
 import { BaseApi } from '../../base-api';
-import type {
+import {
   FlattenReq,
   GetMessageDTO,
   GetMessageResponse,
   GetMessagesDTO,
   GetMessagesResponse,
+  SendMessageOptions,
   SendMessageResponse,
 } from '../types';
 import type { SendMessageDTO, DeleteMessageDTO } from './types';
+import { SEND_MESSAGE_RETRIES_COUNT, SEND_MESSAGE_RETRY_DELAY_BASE_TIME } from './const';
+
+const debug = createDebug('max:messages');
 
 export class MessagesApi extends BaseApi {
   get = async ({ ...query }: FlattenReq<GetMessagesDTO>): Promise<GetMessagesResponse> => {
@@ -24,26 +29,53 @@ export class MessagesApi extends BaseApi {
     });
   };
 
-  send = async ({
-    chat_id, user_id, disable_link_preview, ...body
-  }: FlattenReq<SendMessageDTO>): Promise<SendMessageResponse> => {
-    try {
-      return await this._post('messages', {
-        body,
-        query: { chat_id, user_id, disable_link_preview },
-      });
-    } catch (err) {
-      if (err instanceof MaxError) {
-        if (err.code === 'attachment.not.ready') {
-          console.log('Attachment not ready');
-          await setTimeout(1000);
-          return this.send({
-            chat_id, user_id, disable_link_preview, ...body,
-          });
+  send = async (
+    {
+      chat_id, user_id, disable_link_preview, ...body
+    }: FlattenReq<SendMessageDTO>,
+    options?: SendMessageOptions,
+  ): Promise<SendMessageResponse> => {
+    const signal = options?.signal;
+    let lastError: MaxError | undefined;
+
+    for (
+      let attempt = 0;
+      attempt < SEND_MESSAGE_RETRIES_COUNT;
+      attempt += 1
+    ) {
+      signal?.throwIfAborted();
+
+      try {
+        return await this._post('messages', {
+          body,
+          query: { chat_id, user_id, disable_link_preview },
+          signal,
+        });
+      } catch (err) {
+        const isCriticalError = !(err instanceof MaxError) || err.code !== 'attachment.not.ready';
+
+        if (isCriticalError) {
+          throw err;
         }
+
+        lastError = err;
+        const delay = SEND_MESSAGE_RETRY_DELAY_BASE_TIME * (2 ** attempt);
+        debug(
+          'Attachment not ready (attempt %d/%d), retrying in %dms',
+          attempt + 1,
+          SEND_MESSAGE_RETRIES_COUNT,
+          delay,
+        );
+        await setTimeout(delay, undefined, { signal });
       }
-      throw err;
     }
+
+    throw lastError ?? new MaxError(500, {
+      code: 'attachment.not.ready',
+      message: `Attachment not ready after ${
+        SEND_MESSAGE_RETRIES_COUNT
+      } retries`,
+    });
   };
 
   edit = async ({ message_id, ...body }) => {

@@ -1,5 +1,9 @@
+type KnownErrorCodes = 'attachment.not.ready';
+
+export type ErrorCode = KnownErrorCodes | (string & {});
+
 export type ErrorResponse = {
-  code: string;
+  code: ErrorCode;
   message: string;
 };
 

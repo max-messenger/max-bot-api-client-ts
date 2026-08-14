@@ -18,7 +18,7 @@ import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 import type {
   AnswerOnCallbackExtra, Client, DeleteMessageExtra,
   EditMessageExtra, SendMessageExtra, BotCommand,
-  EditMyInfoDTO, FlattenReq, GetUpdatesDTO, UpdateType,
+  FlattenReq, GetUpdatesDTO, UpdateType,
 } from './core/network/api';
 import type {
   EditChatExtra,
@@ -41,16 +41,12 @@ export class Api {
     return this.raw.bots.getMyInfo();
   };
 
-  editMyInfo = async (extra: FlattenReq<EditMyInfoDTO>) => {
-    return this.raw.bots.editMyInfo(extra);
-  };
-
   setMyCommands = async (commands: BotCommand[]) => {
-    return this.editMyInfo({ commands });
+    return this.raw.bots.editMyCommands({ commands });
   };
 
   deleteMyCommands = async () => {
-    return this.editMyInfo({ commands: [] });
+    return this.raw.bots.editMyCommands({ commands: [] });
   };
 
   getAllChats = async (extra: GetAllChatsExtra = {}) => {
@@ -74,11 +70,12 @@ export class Api {
     text: string,
     extra?: SendMessageExtra,
   ) => {
+    const { signal, ...rest } = extra ?? {};
     const { message } = await this.raw.messages.send({
       chat_id: chatId,
       text,
-      ...extra,
-    });
+      ...rest,
+    }, { signal });
     return message;
   };
 
@@ -87,11 +84,12 @@ export class Api {
     text: string,
     extra?: SendMessageExtra,
   ) => {
+    const { signal, ...rest } = extra ?? {};
     const { message } = await this.raw.messages.send({
       user_id: userId,
       text,
-      ...extra,
-    });
+      ...rest,
+    }, { signal });
     return message;
   };
 

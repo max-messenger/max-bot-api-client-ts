@@ -2,6 +2,7 @@ import {
   Button,
   CallbackButton, ChatButton,
   LinkButton,
+  OpenAppButton,
   RequestContactButton,
   RequestGeoLocationButton,
 } from '../network/api';
@@ -49,5 +50,16 @@ export const chat = (
 ): ChatButton => {
   return {
     type: 'chat', text, chat_title: chatTitle, ...extra,
+  };
+};
+
+export const openApp = (
+  text: string,
+  webApp: string,
+  contactId?: number,
+  payload?: string,
+): OpenAppButton => {
+  return {
+    type: 'open_app', text, web_app: webApp, contact_id: contactId, payload
   };
 };
