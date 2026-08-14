@@ -1,33 +1,37 @@
-import * as fs from 'fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
+import fs from 'node:fs';
 import { type Api } from '../../../api';
-import type { UploadType } from '../../network/api';
-import { DEFAULT_UPLOAD_TIMEOUT } from '../../../shared/model/config';
-import { XhrClient } from '../../network/xhr';
-import type { XhrProgressEvent } from '../../network/xhr';
 import {
-  DefaultOptions,
+  UploadType,
+  StreamUploadEvent,
+  StreamUploadClient,
+  StreamUploadProgressCallback,
+} from '../../network/api';
+import {
   FileSource,
-  UploadAudioOptions,
   UploadFile,
+  DefaultOptions,
   UploadFileOptions,
+  UploadVideoOptions,
+  UploadStreamParams,
+  UploadImageOptions,
+  UploadAudioOptions,
+  UploadRequestOptions,
   UploadFromBufferParams,
   UploadFromStreamParams,
-  UploadImageOptions,
-  UploadProgressCallback,
-  UploadRangeChunkParams,
-  UploadRequestOptions,
-  UploadStreamParams,
-  UploadVideoOptions,
+  UploadRangeChunkParams, UploadProgressContext,
 } from './types';
 
+const DEFAULT_UPLOAD_TIMEOUT = 20_000;
+const CHUNK_UPLOAD_THROTTLE_MS = 500;
+
 export class Upload {
-  xhrClient: XhrClient;
+  private readonly xhrClient: StreamUploadClient;
 
   constructor(private readonly api: Api) {
-    this.xhrClient = new XhrClient();
+    this.xhrClient = new StreamUploadClient();
   }
 
   private getStreamFromSource = async (source: FileSource): Promise<UploadFile> => {
@@ -41,29 +45,15 @@ export class Upload {
 
       const stream = fs.createReadStream(source);
 
-      return {
-        stream,
-        fileName,
-        contentLength: stat.size,
-      };
+      return { stream, fileName, contentLength: stat.size };
     }
 
     if (source instanceof Buffer) {
-      return {
-        buffer: source,
-        fileName: randomUUID(),
-      };
+      return { buffer: source, fileName: randomUUID() };
     }
 
     const stat = await fs.promises.stat(source.path);
-
-    let fileName: undefined | string;
-
-    if (typeof source.path === 'string') {
-      fileName = path.basename(source.path);
-    } else {
-      fileName = randomUUID();
-    }
+    const fileName = typeof source.path === 'string' ? path.basename(source.path) : randomUUID();
 
     return {
       stream: source,
@@ -72,51 +62,37 @@ export class Upload {
     };
   };
 
-  image = async ({ timeout, ...source }: UploadImageOptions) => {
-    if ('url' in source) {
-      return { url: source.url };
-    }
+  image = async ({ timeout, onUploadProgress, ...source }: UploadImageOptions) => {
+    if ('url' in source) return { url: source.url };
 
     const fileBlob = await this.getStreamFromSource(source.source);
-
-    return this.upload<{
-      photos: { [key: string]: { token: string } }
-    }>('image', fileBlob, { timeout });
+    return this.upload<any>('image', fileBlob, { timeout, onUploadProgress });
   };
 
   video = async ({ source, ...options }: UploadVideoOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-
-    return this.upload<{
-      id: number,
-      token: string,
-    }>('video', fileBlob, options);
+    return this.upload<any>('video', fileBlob, options);
   };
 
   file = async ({ source, ...options }: UploadFileOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-
-    return this.upload<{
-      id: number,
-      token: string,
-    }>('file', fileBlob, options);
+    return this.upload<any>('file', fileBlob, options);
   };
 
   audio = async ({ source, ...options }: UploadAudioOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-
-    return this.upload<{
-      id: number,
-      token: string,
-    }>('audio', fileBlob, options);
+    return this.upload<any>('audio', fileBlob, options);
   };
 
-  private upload = async <Res>(type: UploadType, file: UploadFile, options?: DefaultOptions) => {
+  private upload = async <Res>(
+    type: UploadType,
+    file: UploadFile,
+    options?: DefaultOptions,
+  ) => {
     const res = await this.api.raw.uploads.getUploadUrl({ type });
     const { url: uploadUrl, token } = res;
 
     const uploadController = new AbortController();
-
     const uploadAbortTimeout = setTimeout(() => {
       uploadController.abort();
     }, options?.timeout || DEFAULT_UPLOAD_TIMEOUT);
@@ -125,17 +101,19 @@ export class Upload {
       if ('stream' in file) {
         return await this.uploadFromStream<Res>({
           file,
+          token,
           uploadUrl,
           abortController: uploadController,
-          token,
+          onUploadProgress: options?.onUploadProgress,
         });
       }
 
       return await this.uploadFromBuffer<Res>({
         file,
+        token,
         uploadUrl,
         abortController: uploadController,
-        token,
+        onUploadProgress: options?.onUploadProgress,
       });
     } finally {
       clearTimeout(uploadAbortTimeout);
@@ -143,7 +121,11 @@ export class Upload {
   };
 
   private uploadFromStream = async <Res>({
-    file, uploadUrl, token, abortController, onUploadProgress,
+    file,
+    token,
+    uploadUrl,
+    abortController,
+    onUploadProgress,
   }: UploadFromStreamParams): Promise<Res> => {
     if (token) {
       await this.uploadRange(
@@ -166,7 +148,10 @@ export class Upload {
   };
 
   private uploadFromBuffer = async <Res>({
-    file, uploadUrl, abortController, onUploadProgress,
+    file,
+    uploadUrl,
+    abortController,
+    onUploadProgress,
   }: UploadFromBufferParams): Promise<Res> => {
     const formData = new FormData();
     formData.append('data', new Blob([file.buffer]), file.fileName);
@@ -179,9 +164,6 @@ export class Upload {
     return result.data as Res;
   };
 
-  /**
-   * Загрузить файл через Multipart запрос
-   */
   private uploadMultipart = async <Res>(
     { uploadUrl, file, onUploadProgress }: UploadStreamParams,
     options: UploadRequestOptions = {},
@@ -203,9 +185,6 @@ export class Upload {
     return result.data as Res;
   };
 
-  /**
-   * Загрузить чанк данных через Content-Range запрос
-   */
   private uploadRangeChunk = async (
     {
       uploadUrl, chunk, startByte, endByte, fileSize, fileName, onUploadProgress,
@@ -229,35 +208,42 @@ export class Upload {
     return result.data;
   };
 
-  /**
-   * Хелпер для агрегации прогресса отдельных чанков в прогресс всего файла
-   */
   private createProgressHandler = (
     size: number,
-    progressContext: { totalUploadedBefore: number },
-    onUploadProgress?: UploadProgressCallback,
+    progressContext: UploadProgressContext,
+    onUploadProgress?: StreamUploadProgressCallback,
   ) => {
     if (!onUploadProgress) return undefined;
 
-    return (chunkEvent: XhrProgressEvent) => {
+    let lastPercent = -1;
+    let lastTime = 0;
+
+    return (chunkEvent: StreamUploadEvent) => {
       const totalLoaded = Math.min(progressContext.totalUploadedBefore + chunkEvent.loaded, size);
       const ratio = size > 0 ? totalLoaded / size : 0;
       const percent = Math.min(Math.round(ratio * 100), 100);
 
-      onUploadProgress({
-        ratio,
-        loaded: totalLoaded,
-        total: size,
-        percent,
-      });
+      const now = Date.now();
+
+      const isThrottleTimePassed = now - lastTime >= CHUNK_UPLOAD_THROTTLE_MS;
+      const isFinished = percent === 100;
+
+      if (percent !== lastPercent && (isThrottleTimePassed || isFinished)) {
+        lastPercent = percent;
+        lastTime = now;
+
+        onUploadProgress({
+          ratio,
+          loaded: totalLoaded,
+          total: size,
+          percent,
+        });
+      }
     };
   };
 
-  /**
-   * Загрузить файл через Content-Range запрос
-   */
   private uploadRange = async (
-    { uploadUrl, file }: UploadStreamParams,
+    { uploadUrl, file, onUploadProgress }: UploadStreamParams,
     options: UploadRequestOptions = {},
   ) => {
     const size = file.contentLength;
@@ -265,31 +251,25 @@ export class Upload {
     let endByte = 0;
 
     const progressContext = { totalUploadedBefore: 0 };
-
     const handleChunkProgress = this.createProgressHandler(
       size,
       progressContext,
-      options.onUploadProgress,
+      onUploadProgress,
     );
 
     for await (const chunk of file.stream) {
       endByte = startByte + chunk.length - 1;
       const currentChunkLength = chunk.length;
 
-      await this.uploadRangeChunk(
-        {
-          uploadUrl,
-          startByte,
-          endByte,
-          chunk,
-          fileName: file.fileName,
-          fileSize: size,
-          onUploadProgress: handleChunkProgress,
-        },
-        {
-          signal: options.signal,
-        },
-      );
+      await this.uploadRangeChunk({
+        uploadUrl,
+        startByte,
+        endByte,
+        chunk,
+        fileName: file.fileName,
+        fileSize: size,
+        onUploadProgress: handleChunkProgress,
+      }, { signal: options.signal });
 
       progressContext.totalUploadedBefore += currentChunkLength;
       startByte = endByte + 1;

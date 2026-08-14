@@ -32,7 +32,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "eslint ./src --ext ts --report-unused-disable-directives"
+    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 npx tsx --env-file=.env examples/attachments-bot.ts"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
