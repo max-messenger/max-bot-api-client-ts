@@ -24,8 +24,8 @@ import {
   UploadRangeChunkParams, UploadProgressContext,
 } from './types';
 
-const DEFAULT_UPLOAD_TIMEOUT = 20_000;
-const CHUNK_UPLOAD_THROTTLE_MS = 500;
+const DEFAULT_UPLOAD_TIMEOUT = 20_000; // ms
+const CHUNK_UPLOAD_THROTTLE = 500; // ms
 
 export class Upload {
   private readonly xhrClient: StreamUploadClient;
@@ -225,7 +225,7 @@ export class Upload {
 
       const now = Date.now();
 
-      const isThrottleTimePassed = now - lastTime >= CHUNK_UPLOAD_THROTTLE_MS;
+      const isThrottleTimePassed = now - lastTime >= CHUNK_UPLOAD_THROTTLE;
       const isFinished = percent === 100;
 
       if (percent !== lastPercent && (isThrottleTimePassed || isFinished)) {
