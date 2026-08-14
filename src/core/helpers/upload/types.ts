@@ -1,29 +1,31 @@
-import fs from 'fs';
-import { StreamUploadProgressCallback } from '../../network/api';
+import type { ReadStream } from 'fs';
+import type { StreamUploadProgressCallback } from '../../network/api';
 
-export type FileSource = string | fs.ReadStream | Buffer;
+export type FileSource = string | ReadStream | Buffer;
 
-export type UploadRequestOptions = {
+type WithUploadProgress = {
+  onUploadProgress?: StreamUploadProgressCallback;
+};
+
+export interface UploadRequestOptions extends WithUploadProgress {
   signal?: AbortSignal;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
 
-export type DefaultOptions = {
+export interface DefaultOptions extends WithUploadProgress {
   timeout?: number;
-  onUploadProgress?: StreamUploadProgressCallback;
+}
+
+export type UploadProgressContext = {
+  totalUploadedBefore: number;
 };
 
-export type UploadProgressContext = { totalUploadedBefore: number };
-
-export type UploadFromSourceOptions = {
+export interface UploadFromSourceOptions extends WithUploadProgress {
   source: FileSource;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
 
-export type UploadFromUrlOptions = {
+export interface UploadFromUrlOptions extends WithUploadProgress {
   url: string;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
 
 export type UploadFromUrlOrSourceOptions = UploadFromSourceOptions | UploadFromUrlOptions;
 
@@ -31,14 +33,14 @@ export type BaseFile = {
   fileName: string;
 };
 
-export type FileStream = BaseFile & {
-  stream: fs.ReadStream;
+export interface FileStream extends BaseFile {
+  stream: ReadStream;
   contentLength: number;
-};
+}
 
-export type FileBuffer = BaseFile & {
+export interface FileBuffer extends BaseFile {
   buffer: Buffer;
-};
+}
 
 export type UploadFile = FileStream | FileBuffer;
 
@@ -47,31 +49,29 @@ export type UploadVideoOptions = UploadFromSourceOptions & DefaultOptions;
 export type UploadFileOptions = UploadFromSourceOptions & DefaultOptions;
 export type UploadAudioOptions = UploadFromSourceOptions & DefaultOptions;
 
-export type UploadRangeChunkParams = {
+export interface UploadRangeChunkParams extends WithUploadProgress {
   uploadUrl: string;
   chunk: Buffer | string;
   startByte: number;
   endByte: number;
   fileSize: number;
   fileName: string;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
 
-export type UploadStreamParams = {
+export interface UploadStreamParams extends WithUploadProgress {
   file: FileStream;
   uploadUrl: string;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
 
-export type UploadFromStreamParams = UploadStreamParams & {
+export interface UploadFromStreamParams extends UploadStreamParams {
   /**
    * Токен загрузки чанками (при наличии используется Content-Range)
    */
   token?: string;
   abortController?: AbortController;
-};
+}
 
-export type UploadFromBufferParams = {
+export interface UploadFromBufferParams extends WithUploadProgress {
   file: FileBuffer;
   uploadUrl: string;
   /**
@@ -79,5 +79,4 @@ export type UploadFromBufferParams = {
    */
   token?: string;
   abortController?: AbortController;
-  onUploadProgress?: StreamUploadProgressCallback;
-};
+}
