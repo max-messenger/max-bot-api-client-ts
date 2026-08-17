@@ -1,9 +1,9 @@
 import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
 import { Api } from './api';
-import { Composer } from './composer';
-import { Context } from './context';
-import { MaybePromise } from './core/helpers/types';
+import { Composer } from './framework/composer';
+import { Context } from './framework/context';
+import type { MaybePromise } from './core/types';
 
 import {
   BotInfo, ClientOptions, createClient, Update, UpdateType,
@@ -53,6 +53,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
   private handleError = (err: unknown, ctx: Ctx): MaybePromise<void> => {
     process.exitCode = 1;
+    // eslint-disable-next-line no-console
     console.error('Unhandled error while processing', ctx.update);
     throw err;
   };

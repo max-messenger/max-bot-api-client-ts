@@ -3,15 +3,15 @@ import {
   FileAttachment,
   ImageAttachment,
   VideoAttachment,
-} from './core/helpers/attachments';
-import type { MaybeArray } from './core/helpers/types';
+} from './helpers/attachments';
+import type { MaybeArray } from './core/types';
+import { Upload } from './helpers/upload';
 import type {
   UploadFileOptions,
   UploadImageOptions,
   UploadVideoOptions,
-  UploadAudioOptions, 
-} from './core/helpers/upload';
-import { Upload } from './core/helpers/upload/upload';
+  UploadAudioOptions,
+} from './helpers/upload';
 
 import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 

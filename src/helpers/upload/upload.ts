@@ -3,13 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import FormDataStream from 'form-data';
 
-import { type Api } from '../../../api';
+import { type Api } from '../../api';
 import {
   StreamUploadClient,
   type UploadType,
   type StreamUploadEvent,
   type StreamUploadProgressCallback,
-} from '../../network/api';
+} from '../../core/network/api';
 import type {
   FileSource,
   UploadFile,
@@ -158,7 +158,9 @@ export class Upload {
     onUploadProgress,
   }: UploadFromBufferParams): Promise<Res> => {
     const formData = new FormDataStream();
-    formData.append('data', file.buffer, file.fileName);
+    // Node accepts Buffer as Blob data; the cast bridges its broader generic type.
+    const blobPart = file.buffer as unknown as BlobPart;
+    formData.append('data', new Blob([blobPart]), file.fileName);
 
     const result = await this.streamUploadClient.post<Res>(
       uploadUrl,

@@ -5,7 +5,7 @@ import {
   OpenAppButton,
   RequestContactButton,
   RequestGeoLocationButton,
-} from '../network/api';
+} from '../core/network/api';
 
 type MakeExtra<
     T extends Button,
