@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "debug": "^4.3.7",
+    "form-data": "^4.0.6",
     "vcf": "^2.1.2"
   }
 }

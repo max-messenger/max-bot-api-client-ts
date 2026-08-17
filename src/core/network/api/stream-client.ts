@@ -1,4 +1,6 @@
 import { Readable } from 'node:stream';
+import FormDataStream from 'form-data';
+
 import https from 'node:https';
 import http from 'node:http';
 import { StreamUploadOptions } from './types';
@@ -12,7 +14,7 @@ const HTTP_PORT = 80;
 export class StreamUploadClient {
   public async post<T>(
     url: string,
-    body: FormData | string | Buffer,
+    body: FormDataStream | string | Buffer,
     options: StreamUploadOptions = {},
   ): Promise<{ data: T }> {
     const urlObj = new URL(url);
@@ -28,17 +30,14 @@ export class StreamUploadClient {
     let uploadStream: Readable;
     let totalSize = 0;
 
-    if (body instanceof FormData) {
-      const responseHelper = new Response(body);
-      const formDataBlob = await responseHelper.blob();
+    if (body instanceof FormDataStream) {
+      customHeaders['content-type'] = body.getHeaders()['content-type'];
 
-      const contentType = responseHelper.headers.get('content-type');
-      if (contentType) {
-        customHeaders['content-type'] = contentType;
-      }
+      totalSize = await new Promise<number>((resolve, reject) => {
+        body.getLength((err, length) => (err ? reject(err) : resolve(length)));
+      });
 
-      totalSize = formDataBlob.size;
-      uploadStream = Readable.fromWeb(formDataBlob.stream() as any);
+      uploadStream = body;
     } else {
       const payload = typeof body === 'string' ? Buffer.from(body, 'utf-8') : body;
       totalSize = payload.length;

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
+import FormDataStream from 'form-data';
 
 import fs from 'node:fs';
 import { type Api } from '../../../api';
@@ -158,7 +159,7 @@ export class Upload {
     abortController,
     onUploadProgress,
   }: UploadFromBufferParams): Promise<Res> => {
-    const formData = new FormData();
+    const formData = new FormDataStream();
     formData.append('data', new Blob([file.buffer]), file.fileName);
 
     const result = await this.streamUploadClient.post<Res>(uploadUrl, formData, {
@@ -173,7 +174,7 @@ export class Upload {
     { uploadUrl, file, onUploadProgress }: UploadStreamParams,
     options: UploadRequestOptions = {},
   ) => {
-    const body = new FormData();
+    const body = new FormDataStream();
     body.append('data', {
       [Symbol.toStringTag]: 'File',
       name: file.fileName,
