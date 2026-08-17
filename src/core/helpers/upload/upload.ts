@@ -54,7 +54,7 @@ export class Upload {
       return { stream, fileName, contentLength: stat.size };
     }
 
-    if (source instanceof Buffer) {
+    if (Buffer.isBuffer(source)) {
       return { buffer: source, fileName: randomUUID() };
     }
 
