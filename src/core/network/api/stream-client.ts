@@ -34,7 +34,12 @@ export class StreamUploadClient {
       customHeaders['content-type'] = body.getHeaders()['content-type'];
 
       totalSize = await new Promise<number>((resolve, reject) => {
-        body.getLength((err, length) => (err ? reject(err) : resolve(length)));
+        body.getLength((err, length) => (err ? reject(
+          new MaxError(CLIENT_CLOSED_REQUEST_STATUS, {
+            message: 'Failed to calculate FormData length',
+            code: 'upload.length.error',
+          }),
+        ) : resolve(length)));
       });
 
       uploadStream = body;
