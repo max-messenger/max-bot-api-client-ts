@@ -2,6 +2,7 @@ import { Readable } from 'node:stream';
 import https from 'node:https';
 import http from 'node:http';
 import { StreamUploadOptions } from './types';
+import { MaxError } from './error';
 
 export class StreamUploadClient {
   public async post<T>(
@@ -57,8 +58,21 @@ export class StreamUploadClient {
 
       const req = transport.request(reqOptions, (res) => {
         let responseData = '';
+        const statusCode = res.statusCode || 0;
+
         res.on('data', (chunk) => { responseData += chunk; });
         res.on('end', () => {
+          if (statusCode >= 400) {
+            let errorBody;
+            try {
+              errorBody = JSON.parse(responseData);
+            } catch {
+              errorBody = { message: responseData };
+            }
+            reject(new MaxError(statusCode, errorBody));
+            return;
+          }
+
           try {
             resolve({ data: (options.responseType === 'text' ? responseData : JSON.parse(responseData)) as T });
           } catch {
@@ -67,7 +81,12 @@ export class StreamUploadClient {
         });
       });
 
-      req.on('error', reject);
+      req.on('error', () => {
+        reject(new MaxError(499, {
+          message: 'Network error or request aborted',
+          code: 'upload.request.error',
+        }));
+      });
 
       let loadedBytes = 0;
 
@@ -93,7 +112,10 @@ export class StreamUploadClient {
 
       uploadStream.on('error', (err) => {
         req.destroy(err);
-        reject(err);
+        reject(new MaxError(499, {
+          message: 'Upload stream error',
+          code: 'upload.stream.error',
+        }));
       });
     });
   }
