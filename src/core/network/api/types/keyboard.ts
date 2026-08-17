@@ -1,10 +1,7 @@
-export type ButtonIntent = 'default' | 'positive' | 'negative';
-
 export type CallbackButton = {
   type: 'callback';
   text: string;
   payload: string;
-  intent?: ButtonIntent;
 };
 
 export type LinkButton = {
