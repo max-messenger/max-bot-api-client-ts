@@ -1,8 +1,13 @@
 import type { SyncSessionStore } from './types';
 
+// Callers never receive the object held by the store itself. This prevents a
+// session from changing outside session middleware without an explicit set().
 const clone = <T>(value: T): T => structuredClone(value);
 
-/** Process-local store for development, tests, and single-instance bots. */
+/**
+ * Process-local store for development and tests.
+ * All sessions are lost when the process stops, crashes, or restarts.
+ */
 export class MemorySessionStore<T> implements SyncSessionStore<T> {
   private readonly entries = new Map<string, { value: T; expiresAt: number }>();
 
@@ -21,6 +26,7 @@ export class MemorySessionStore<T> implements SyncSessionStore<T> {
   set(key: string, value: T): void {
     this.entries.set(key, {
       value: clone(value),
+      // Every successful write refreshes the TTL, making it an inactivity TTL.
       expiresAt: Date.now() + this.ttl,
     });
   }
