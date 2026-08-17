@@ -2,7 +2,7 @@
 
 ## Документация
 
-В [документации](https://github.com/max-messenger/max-bot-api-client-ts/tree/main/docs) вы можете найти подробные инструкции по использованию фреймворка.
+В [документации](https://github.com/max-messenger/max-bot-api-client-ts/tree/main/docs) вы можете найти подробные инструкции по использованию фреймворка, включая [сессии, диалоговые сценарии и расширенный middleware](https://github.com/max-messenger/max-bot-api-client-ts/blob/main/docs/06-advanced.md), а также [общую концепцию SDK](https://github.com/max-messenger/max-bot-api-client-ts/blob/main/docs/09-sdk-concepts.md).
 
 ## Быстрый старт
 
