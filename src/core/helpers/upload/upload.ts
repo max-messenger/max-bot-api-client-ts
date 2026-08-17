@@ -13,6 +13,10 @@ import {
   FileSource,
   UploadFile,
   DefaultOptions,
+  FileUploadResult,
+  AudioUploadResult,
+  VideoUploadResult,
+  ImageUploadResult,
   UploadFileOptions,
   UploadVideoOptions,
   UploadStreamParams,
@@ -21,7 +25,8 @@ import {
   UploadRequestOptions,
   UploadFromBufferParams,
   UploadFromStreamParams,
-  UploadRangeChunkParams, UploadProgressContext,
+  UploadRangeChunkParams,
+  UploadProgressContext,
 } from './types';
 
 const DEFAULT_UPLOAD_TIMEOUT = 20_000; // ms
@@ -66,22 +71,22 @@ export class Upload {
     if ('url' in source) return { url: source.url };
 
     const fileBlob = await this.getStreamFromSource(source.source);
-    return this.upload<any>('image', fileBlob, { timeout, onUploadProgress });
+    return this.upload<ImageUploadResult>('image', fileBlob, { timeout, onUploadProgress });
   };
 
   video = async ({ source, ...options }: UploadVideoOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-    return this.upload<any>('video', fileBlob, options);
+    return this.upload<VideoUploadResult>('video', fileBlob, options);
   };
 
   file = async ({ source, ...options }: UploadFileOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-    return this.upload<any>('file', fileBlob, options);
+    return this.upload<FileUploadResult>('file', fileBlob, options);
   };
 
   audio = async ({ source, ...options }: UploadAudioOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-    return this.upload<any>('audio', fileBlob, options);
+    return this.upload<AudioUploadResult>('audio', fileBlob, options);
   };
 
   private upload = async <Res>(

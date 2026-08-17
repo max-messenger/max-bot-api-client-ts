@@ -80,3 +80,26 @@ export interface UploadFromBufferParams extends WithUploadProgress {
   token?: string;
   abortController?: AbortController;
 }
+
+export type ImageUploadResult = {
+  photos: {
+    [key: string]: {
+      token: string
+    }
+  }
+};
+
+export type VideoUploadResult = {
+  id: number,
+  token: string,
+};
+
+export type FileUploadResult = {
+  id: number,
+  token: string,
+};
+
+export type AudioUploadResult = {
+  id: number,
+  token: string,
+};
