@@ -15,10 +15,9 @@ type MakeExtra<
 export const callback = (
   text: string,
   payload: string,
-  extra?: MakeExtra<CallbackButton, 'payload'>,
 ): CallbackButton => {
   return {
-    type: 'callback', text, payload, ...extra,
+    type: 'callback', text, payload,
   };
 };
 

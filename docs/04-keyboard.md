@@ -6,8 +6,8 @@ const keyboard = Keyboard.inlineKeyboard([
   // 1-я строка с 3-мя кнопками
   [
     Keyboard.button.callback('default', 'color:default'),
-    Keyboard.button.callback('positive', 'color:positive', { intent: 'positive' }),
-    Keyboard.button.callback('negative', 'color:negative', { intent: 'negative' }),
+    Keyboard.button.callback('positive', 'color:positive'),
+    Keyboard.button.callback('negative', 'color:negative'),
   ], 
   // 2-я строка с 1-й кнопкой
   [Keyboard.button.link('Открыть Max', 'https://max.ru')],
@@ -17,9 +17,7 @@ const keyboard = Keyboard.inlineKeyboard([
 
 #### Callback
 ```typescript
-button.callback(text: string, payload: string, extra?: { 
-  intent?: 'default' | 'positive' | 'negative' 
-});
+button.callback(text: string, payload: string);
 ```
 Добавляет callback-кнопку. При нажатии на неё сервер Max отправляет обновление `message_callback`.
 
