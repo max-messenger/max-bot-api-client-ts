@@ -8,9 +8,12 @@ export type DispatchResult<Key extends PropertyKey> =
   Key | { route: Key; state?: Record<string | symbol, unknown> };
 
 const hasOwn = (value: object, key: PropertyKey) => {
+  // Routes such as `toString` must not select properties inherited from Object.
   return Object.prototype.hasOwnProperty.call(value, key);
 };
 
+// State is copied onto a regular Context object. Reject prototype-related keys
+// even when they arrive from parsed JSON or another untrusted route source.
 const unsafeStateKeys = new Set(['__proto__', 'constructor', 'prototype']);
 
 export function dispatch<

@@ -10,6 +10,8 @@ import type {
   ConversationTransition,
 } from './types';
 
+// The registry contains definitions with different data and step types. Their
+// exact generics remain visible to application code and are erased only here.
 type StoredDefinition<C extends Context> = ConversationDefinition<C, object, string>;
 
 const hasStep = <C extends Context>(definition: StoredDefinition<C>, step: string) => {
@@ -17,6 +19,8 @@ const hasStep = <C extends Context>(definition: StoredDefinition<C>, step: strin
 };
 
 export const defineConversation = <C extends Context, Data extends object>() => {
+  // Two calls let users provide Context/Data while keeping the exact step-name
+  // union explicit; TypeScript cannot partially specify generic parameters.
   return <Step extends string>(definition: ConversationDefinition<C, Data, Step>) => definition;
 };
 
@@ -25,6 +29,8 @@ export const transition = {
   stay<Data extends object>(
     data?: Partial<Data>,
   ): Extract<ConversationTransition<Data, string>, { type: 'stay' }> {
+    // Omit the optional field instead of returning `data: undefined`, which is
+    // required by projects using exactOptionalPropertyTypes.
     return data === undefined ? { type: 'stay' } : { type: 'stay', data };
   },
   goto<Step extends string, Data extends object = Record<string, never>>(
@@ -61,6 +67,8 @@ export class ConversationEngine<
   ) {
     this.validate(definition);
     if (this.definitions.has(definition.id)) {
+      // One id must always resolve to one definition. Replacing it could make a
+      // step already stored in a user's session impossible to execute.
       throw new TypeError(`Conversation "${definition.id}" is already registered`);
     }
     this.definitions.set(definition.id, definition as unknown as StoredDefinition<C>);
@@ -94,6 +102,8 @@ export class ConversationEngine<
       if (state === undefined) return next();
 
       if (state.expiresAt !== undefined && state.expiresAt <= this.now()) {
+        // The expired update is passed downstream as a normal update instead
+        // of being consumed by a conversation that no longer exists.
         delete ctx.session?.conversation;
         return next();
       }
@@ -142,6 +152,8 @@ export class ConversationEngine<
         if (initialData === undefined) {
           throw new TypeError(`Conversation "${definition.id}" requires initial data`);
         }
+        // Persist the initial position before running it. If the first step
+        // fails, the same step remains available on the next update.
         session.conversation = {
           id: definition.id,
           step: definition.initialStep,
@@ -173,13 +185,17 @@ export class ConversationEngine<
     }
     const step = definition.steps[state.step];
 
-    // A failed step leaves the previously persisted state available for retry.
+    // Clone the stored value before handing it to application code. Only the
+    // transition patch below may change persisted conversation data, and a
+    // failed step leaves the previous value available for retry.
     const snapshot = structuredClone(state);
     const input: ConversationStepInput<C, object, string> = {
       ctx,
       state: Object.freeze(snapshot),
       data: Object.freeze(snapshot.data),
     };
+    // A conversation-wide interceptor may handle the update itself. Returning
+    // undefined delegates the same update to the current step.
     const result = await definition.intercept?.(input) ?? await step(input);
     this.apply(session, definition, state, result);
   }
@@ -210,6 +226,8 @@ export class ConversationEngine<
       id: state.id,
       step: nextStep,
       data: { ...state.data, ...(result.data ?? {}) },
+      // Successful activity extends the idle deadline. Failed steps do not
+      // apply a transition and therefore keep the previously stored deadline.
       expiresAt: this.deadline(definition),
     };
   }

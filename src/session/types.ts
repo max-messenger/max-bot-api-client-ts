@@ -22,7 +22,10 @@ export interface SessionOptions<S, C extends Context, P extends string> {
   property?: P;
   /** Defaults to `<user_id>:<chat_id>`. Nullish keys disable the session. */
   getSessionKey?: (ctx: C) => MaybePromise<string | null | undefined>;
-  /** Defaults to process-local memory storage. */
+  /**
+   * Defaults to process-local memory storage, which loses all sessions when
+   * the process stops. Use an external store for durable state.
+   */
   store?: SessionStore<S>;
   /** Creates the value when the store has no session for the key. */
   defaultSession?: (ctx: C) => S;

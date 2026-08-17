@@ -73,6 +73,8 @@ export class Composer<Ctx extends Context> implements MiddlewareObj<Ctx> {
       // A command name must never match ordinary text such as "ping".
       if (!text.startsWith('/')) return next();
 
+      // Arguments are not split yet: `/name value` is passed to triggers as
+      // `name value`. Adding command/payload/args parsing is a separate API step.
       const command = text.slice(1);
       for (const trigger of normalizedTriggers) {
         const match = trigger(command, ctx);
