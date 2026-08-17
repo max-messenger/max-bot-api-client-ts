@@ -60,6 +60,6 @@ export const openApp = (
   payload?: string,
 ): OpenAppButton => {
   return {
-    type: 'open_app', text, web_app: webApp, contact_id: contactId, payload
+    type: 'open_app', text, web_app: webApp, contact_id: contactId, payload,
   };
 };
