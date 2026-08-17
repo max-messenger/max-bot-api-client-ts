@@ -82,7 +82,6 @@ export class Upload {
 
   file = async ({ source, ...options }: UploadFileOptions) => {
     const fileBlob = await this.getStreamFromSource(source);
-    console.log('File Upload');
     return this.upload<FileUploadResult>('file', fileBlob, options);
   };
 
