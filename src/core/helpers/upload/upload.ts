@@ -33,10 +33,10 @@ const DEFAULT_UPLOAD_TIMEOUT = 20_000; // ms
 const CHUNK_UPLOAD_THROTTLE = 500; // ms
 
 export class Upload {
-  private readonly xhrClient: StreamUploadClient;
+  private readonly streamUploadClient: StreamUploadClient;
 
   constructor(private readonly api: Api) {
-    this.xhrClient = new StreamUploadClient();
+    this.streamUploadClient = new StreamUploadClient();
   }
 
   private getStreamFromSource = async (source: FileSource): Promise<UploadFile> => {
@@ -161,7 +161,7 @@ export class Upload {
     const formData = new FormData();
     formData.append('data', new Blob([file.buffer]), file.fileName);
 
-    const result = await this.xhrClient.post<Res>(uploadUrl, formData, {
+    const result = await this.streamUploadClient.post<Res>(uploadUrl, formData, {
       signal: abortController?.signal,
       onUploadProgress,
     });
@@ -181,7 +181,7 @@ export class Upload {
       size: file.contentLength,
     } as unknown as File);
 
-    const result = await this.xhrClient.post<Res>(
+    const result = await this.streamUploadClient.post<Res>(
       uploadUrl,
       body,
       { onUploadProgress, signal: options.signal, responseType: 'json' },
@@ -196,7 +196,7 @@ export class Upload {
     }: UploadRangeChunkParams,
     options: UploadRequestOptions = {},
   ) => {
-    const result = await this.xhrClient.post<string>(uploadUrl, chunk, {
+    const result = await this.streamUploadClient.post<string>(uploadUrl, chunk, {
       responseType: 'text',
       signal: options.signal,
       onUploadProgress,

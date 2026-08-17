@@ -4,6 +4,11 @@ import http from 'node:http';
 import { StreamUploadOptions } from './types';
 import { MaxError } from './error';
 
+const CLIENT_CLOSED_REQUEST_STATUS = 499;
+const ERROR_STATUS_THRESHOLD = 400;
+const HTTPS_PORT = 443;
+const HTTP_PORT = 80;
+
 export class StreamUploadClient {
   public async post<T>(
     url: string,
@@ -45,10 +50,12 @@ export class StreamUploadClient {
     }
 
     return new Promise((resolve, reject) => {
+      const defaultPort = isSecure ? HTTPS_PORT : HTTP_PORT;
+
       const reqOptions: https.RequestOptions = {
         method: 'POST',
         hostname: urlObj.hostname,
-        port: urlObj.port || (isSecure ? 443 : 80),
+        port: urlObj.port || defaultPort,
         path: `${urlObj.pathname}${urlObj.search}`,
         headers: customHeaders,
         signal: options.signal,
@@ -62,7 +69,7 @@ export class StreamUploadClient {
 
         res.on('data', (chunk) => { responseData += chunk; });
         res.on('end', () => {
-          if (statusCode >= 400) {
+          if (statusCode >= ERROR_STATUS_THRESHOLD) {
             let errorBody;
             try {
               errorBody = JSON.parse(responseData);
@@ -81,9 +88,17 @@ export class StreamUploadClient {
         });
       });
 
-      req.on('error', () => {
-        reject(new MaxError(499, {
-          message: 'Network error or request aborted',
+      req.on('error', (err) => {
+        if (err.name === 'AbortError' || options.signal?.aborted) {
+          reject(new MaxError(CLIENT_CLOSED_REQUEST_STATUS, {
+            message: 'Request aborted by user or timeout',
+            code: 'upload.request.aborted',
+          }));
+          return;
+        }
+
+        reject(new MaxError(CLIENT_CLOSED_REQUEST_STATUS, {
+          message: 'Network error',
           code: 'upload.request.error',
         }));
       });
@@ -112,7 +127,7 @@ export class StreamUploadClient {
 
       uploadStream.on('error', (err) => {
         req.destroy(err);
-        reject(new MaxError(499, {
+        reject(new MaxError(CLIENT_CLOSED_REQUEST_STATUS, {
           message: 'Upload stream error',
           code: 'upload.stream.error',
         }));
