@@ -22,14 +22,16 @@ export const defineConversation = <C extends Context, Data extends object>() => 
 
 /** Explicit transitions keep step changes visible in application code. */
 export const transition = {
-  stay<Data extends object>(data?: Partial<Data>) {
-    return { type: 'stay' as const, data };
+  stay<Data extends object>(
+    data?: Partial<Data>,
+  ): Extract<ConversationTransition<Data, string>, { type: 'stay' }> {
+    return data === undefined ? { type: 'stay' } : { type: 'stay', data };
   },
   goto<Step extends string, Data extends object = Record<string, never>>(
     step: Step,
     data?: Partial<Data>,
-  ) {
-    return { type: 'goto' as const, step, data };
+  ): Extract<ConversationTransition<Data, Step>, { type: 'goto' }> {
+    return data === undefined ? { type: 'goto', step } : { type: 'goto', step, data };
   },
   complete() {
     return { type: 'complete' as const };
