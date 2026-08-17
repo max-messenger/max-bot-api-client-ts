@@ -107,23 +107,20 @@ export class StreamUploadClient {
         }));
       });
 
-      let loadedBytes = 0;
+      if (options.onUploadProgress && totalSize > 0) {
+        let loadedBytes = 0;
 
-      uploadStream.on('data', (chunk: Buffer) => {
-        loadedBytes += chunk.length;
-
-        if (options.onUploadProgress && totalSize > 0) {
+        uploadStream.on('data', (chunk: Buffer) => {
+          loadedBytes += chunk.length;
           const ratio = loadedBytes / totalSize;
-          options.onUploadProgress({
+          options.onUploadProgress?.({
             ratio,
             loaded: loadedBytes,
             total: totalSize,
             percent: Math.min(Math.round(ratio * 100), 100),
           });
-        }
-
-        req.write(chunk);
-      });
+        });
+      }
 
       uploadStream.on('end', () => {
         req.end();
@@ -136,6 +133,8 @@ export class StreamUploadClient {
           code: 'upload.stream.error',
         }));
       });
+
+      uploadStream.pipe(req);
     });
   }
 }

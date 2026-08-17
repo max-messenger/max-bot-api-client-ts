@@ -5,7 +5,7 @@ import {
   VideoAttachment,
 } from './core/helpers/attachments';
 import type { MaybeArray } from './core/helpers/types';
-import { Upload } from './core/helpers/upload';
+import { Upload } from './core/helpers/upload/upload';
 import type {
   UploadFileOptions,
   UploadImageOptions,

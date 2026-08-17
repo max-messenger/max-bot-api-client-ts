@@ -5,12 +5,12 @@ import FormDataStream from 'form-data';
 import fs from 'node:fs';
 import { type Api } from '../../../api';
 import {
-  UploadType,
-  StreamUploadEvent,
   StreamUploadClient,
-  StreamUploadProgressCallback,
+  type UploadType,
+  type StreamUploadEvent,
+  type StreamUploadProgressCallback,
 } from '../../network/api';
-import {
+import type {
   FileSource,
   UploadFile,
   DefaultOptions,
@@ -160,7 +160,7 @@ export class Upload {
     onUploadProgress,
   }: UploadFromBufferParams): Promise<Res> => {
     const formData = new FormDataStream();
-    formData.append('data', new Blob([file.buffer]), file.fileName);
+    formData.append('data', file.buffer, file.fileName);
 
     const result = await this.streamUploadClient.post<Res>(uploadUrl, formData, {
       signal: abortController?.signal,
