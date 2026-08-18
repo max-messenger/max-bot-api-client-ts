@@ -31,8 +31,11 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "lint": "eslint ./src --ext ts --report-unused-disable-directives"
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc",
+    "lint": "eslint ./src --ext ts --report-unused-disable-directives",
+    "test:examples": "tsc -p tsconfig.examples.json",
+    "test": "npm run build && npm run test:examples && node --test tests/*.test.js"
   },
   "devDependencies": {
     "@types/debug": "^4.1.13",

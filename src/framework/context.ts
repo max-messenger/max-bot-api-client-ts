@@ -1,19 +1,19 @@
 import vCard from 'vcf';
-import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
+import type { Guard, Guarded, MaybeArray } from '../core/types';
 import type {
   AnswerOnCallbackExtra, BotInfo, BotStartedUpdate, Chat,
   EditMessageExtra, FilteredUpdate, GetMessagesExtra, Message,
   MessageCallbackUpdate, SenderAction, SendMessageExtra,
   Update, UpdateType, User,
-} from './core/network/api';
+} from '../core/network/api';
 
-import { type Api } from './api';
+import { type Api } from '../api';
 import {
   EditChatExtra,
   GetAllChatsExtra,
   GetChatMembersExtra,
   PinMessageExtra,
-} from './core/network/api/modules';
+} from '../core/network/api/modules';
 
 export type FilteredContext<
   Ctx extends Context,
@@ -33,9 +33,9 @@ type GetChatId<U extends Update> =
     | U extends { chat_id: number }
       ? number
       : U extends MessageCallbackUpdate
-        ? number | undefined
+        ? number | null | undefined
         : U extends { message: Message }
-          ? number
+          ? number | null
           : undefined;
 
 type GetChat<U extends Update> =
@@ -87,7 +87,14 @@ type Sticker = {
 };
 
 export class Context<U extends Update = Update> {
+  /** Match produced by command/hears/action for the selected handler. */
   match?: RegExpExecArray;
+
+  /**
+   * Per-update storage shared by middleware in the current chain. A fresh
+   * Context is created for every update; persistent data belongs in session.
+   */
+  state: Record<string | symbol, unknown> = {};
 
   constructor(
     readonly update: U,
@@ -99,6 +106,8 @@ export class Context<U extends Update = Update> {
     this: Ctx,
     filters: MaybeArray<Filter>,
   ): this is FilteredContext<Ctx, Filter> {
+    // Runtime matching and the type predicate intentionally live together so a
+    // successful check narrows update-specific Context getters for TypeScript.
     for (const filter of Array.isArray(filters) ? filters : [filters]) {
       if (typeof filter === 'function'
         ? filter(this.update)
@@ -112,10 +121,10 @@ export class Context<U extends Update = Update> {
   }
 
   assert<T extends string | number | object>(
-    value: T | undefined,
+    value: T | null | undefined,
     method: string,
   ): asserts value is T {
-    if (value === undefined) {
+    if (value == null) {
       throw new TypeError(
         `Max: "${method}" isn't available for "${this.updateType}"`,
       );

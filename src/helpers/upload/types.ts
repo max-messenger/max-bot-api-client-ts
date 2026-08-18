@@ -1,5 +1,5 @@
 import type { ReadStream } from 'fs';
-import type { StreamUploadProgressCallback } from '../../network/api';
+import type { StreamUploadProgressCallback } from '../../core/network/api';
 
 export type FileSource = string | ReadStream | Buffer;
 
