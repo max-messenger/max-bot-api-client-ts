@@ -68,6 +68,14 @@ export type BotStartedUpdate = MakeUpdate<'bot_started', {
   user_locale?: UserLocale;
 }>;
 
+export type BotStoppedUpdate = MakeUpdate<'bot_stopped', {
+  chat_id: number;
+  user: User;
+  timestamp: number;
+  payload?: string | null;
+  user_locale?: UserLocale;
+}>;
+
 export type ChatTitleChangedUpdate = MakeUpdate<'chat_title_changed', {
   chat_id: number;
   user: User;
@@ -106,11 +114,12 @@ export type FilteredUpdate<Type extends UpdateType> =
                 : Type extends 'user_added' ? UserAddedUpdate
                   : Type extends 'user_removed' ? UserRemovedUpdate
                     : Type extends 'bot_started' ? BotStartedUpdate
-                      : Type extends 'chat_title_changed' ? ChatTitleChangedUpdate
-                        : Type extends 'message_construction_request' ? MessageConstructionRequestUpdate
-                          : Type extends 'message_constructed' ? MessageConstructedUpdate
-                            : Type extends 'message_chat_created' ? MessageChatCreatedUpdate
-                              : never;
+                      : Type extends 'bot_stopped' ? BotStoppedUpdate
+                        : Type extends 'chat_title_changed' ? ChatTitleChangedUpdate
+                          : Type extends 'message_construction_request' ? MessageConstructionRequestUpdate
+                            : Type extends 'message_constructed' ? MessageConstructedUpdate
+                              : Type extends 'message_chat_created' ? MessageChatCreatedUpdate
+                                : never;
 
 export type Update =
   | MessageCallbackUpdate
@@ -119,6 +128,7 @@ export type Update =
   | MessageEditedUpdate
   | BotAddedUpdate
   | BotRemovedUpdate
+  | BotStoppedUpdate
   | UserAddedUpdate
   | UserRemovedUpdate
   | BotStartedUpdate
