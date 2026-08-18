@@ -71,7 +71,6 @@ export type BotStartedUpdate = MakeUpdate<'bot_started', {
 export type BotStoppedUpdate = MakeUpdate<'bot_stopped', {
   chat_id: number;
   user: User;
-  timestamp: number;
   payload?: string | null;
   user_locale?: UserLocale;
 }>;
@@ -104,22 +103,26 @@ export type MessageChatCreatedUpdate = MakeUpdate<'message_chat_created', {
 
 export type UpdateType = Update['update_type'];
 
-export type FilteredUpdate<Type extends UpdateType> =
-    | Type extends 'message_callback' ? MessageCallbackUpdate
-      : Type extends 'message_created' ? MessageCreatedUpdate
-        : Type extends 'message_removed' ? MessageRemovedUpdate
-          : Type extends 'message_edited' ? MessageEditedUpdate
-            : Type extends 'bot_added' ? BotAddedUpdate
-              : Type extends 'bot_removed' ? BotRemovedUpdate
-                : Type extends 'user_added' ? UserAddedUpdate
-                  : Type extends 'user_removed' ? UserRemovedUpdate
-                    : Type extends 'bot_started' ? BotStartedUpdate
-                      : Type extends 'bot_stopped' ? BotStoppedUpdate
-                        : Type extends 'chat_title_changed' ? ChatTitleChangedUpdate
-                          : Type extends 'message_construction_request' ? MessageConstructionRequestUpdate
-                            : Type extends 'message_constructed' ? MessageConstructedUpdate
-                              : Type extends 'message_chat_created' ? MessageChatCreatedUpdate
-                                : never;
+export type UpdateMap = {
+  message_callback: MessageCallbackUpdate;
+  message_created: MessageCreatedUpdate;
+  message_removed: MessageRemovedUpdate;
+  message_edited: MessageEditedUpdate;
+  bot_added: BotAddedUpdate;
+  bot_removed: BotRemovedUpdate;
+  user_added: UserAddedUpdate;
+  user_removed: UserRemovedUpdate;
+  bot_started: BotStartedUpdate;
+  bot_stopped: BotStoppedUpdate;
+  chat_title_changed: ChatTitleChangedUpdate;
+  message_construction_request: MessageConstructionRequestUpdate;
+  message_constructed: MessageConstructedUpdate;
+  message_chat_created: MessageChatCreatedUpdate;
+};
+
+export type FilteredUpdate<Type extends UpdateType> = Type extends keyof UpdateMap
+  ? UpdateMap[Type]
+  : never;
 
 export type Update =
   | MessageCallbackUpdate
