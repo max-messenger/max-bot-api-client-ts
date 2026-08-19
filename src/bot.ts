@@ -1,4 +1,5 @@
 import createDebug from 'debug';
+import { setTimeout } from 'node:timers/promises';
 import { Composer } from './composer';
 import { Context } from './context';
 import { MaybePromise } from './core/helpers/types';
@@ -11,6 +12,7 @@ import { Polling } from './core/network/polling';
 import { Api } from './api';
 
 const debug = createDebug('max:main');
+const POLLING_RESTART_ON_ERROR_TIMEOUT = 5000;
 
 type BotConfig<Ctx extends Context> = {
   clientOptions?: ClientOptions;
@@ -19,6 +21,7 @@ type BotConfig<Ctx extends Context> = {
 
 type LaunchOptions = {
   allowedUpdates: UpdateType[],
+  retry?: boolean
 };
 
 const defaultConfig: BotConfig<Context> = {
@@ -64,12 +67,27 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     }
 
     this.pollingIsStarted = true;
+    let needsRetry = false;
 
-    this.botInfo ??= await this.api.getMyInfo();
-    this.polling = new Polling(this.api, options?.allowedUpdates);
+    try {
+      this.botInfo ??= await this.api.getMyInfo();
+      this.polling = new Polling(this.api, options?.allowedUpdates);
 
-    debug(`Starting @${this.botInfo.username}`);
-    await this.polling.loop(this.handleUpdate);
+      debug(`Starting @${this.botInfo.username}`);
+      await this.polling.loop(this.handleUpdate);
+    } catch (error) {
+      console.error('Unhandled error while polling', error);
+      needsRetry = !!options?.retry;
+    } finally {
+      this.pollingIsStarted = false;
+      debug('Long polling stopped');
+    }
+
+    if (needsRetry) {
+      debug('Retrying to restart long polling in 5000ms');
+      await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT);
+      void this.start(options);
+    }
   };
 
   stop = () => {

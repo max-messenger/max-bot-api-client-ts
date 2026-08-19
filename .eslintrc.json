@@ -13,6 +13,8 @@
     "arrow-body-style": "off",
     "no-restricted-syntax": "off",
     "class-methods-use-this": "off",
-    "max-classes-per-file": "off"
+    "max-classes-per-file": "off",
+    "no-continue": "off",
+    "no-void": ["error", { "allowAsStatement": true }]
   }
 }

@@ -1,5 +1,6 @@
 import createDebug from 'debug';
 
+import { setTimeout } from 'node:timers/promises';
 import type { Api } from '../../api';
 import { MaxError, Update, UpdateType } from './api';
 
@@ -35,16 +36,13 @@ export class Polling {
               || (err instanceof MaxError && err.status >= 500)
           ) {
             debug(`Failed to fetch updates, retrying after ${RETRY_INTERVAL}ms.`, err);
-            await new Promise((resolve) => {
-              setTimeout(resolve, RETRY_INTERVAL);
-            });
-            return;
+            await setTimeout(RETRY_INTERVAL);
+            continue;
           }
         }
         throw err;
       }
     }
-    debug('Long polling is done');
   };
 
   stop = () => {
