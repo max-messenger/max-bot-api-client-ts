@@ -7,7 +7,7 @@ import { MaxError, Update, UpdateType } from './api';
 const debug = createDebug('max:polling');
 
 const BASE_DELAY_MS = 5_000; // ms
-const MAX_DELAY_MS = 30_000; // ms
+const MAX_DELAY_MS = 60_000; // ms
 
 export class Polling {
   private readonly abortController = new AbortController();
