@@ -28,6 +28,7 @@ export class Polling {
       try {
         const { updates, marker } = await this.api.getUpdates(this.allowedUpdates, {
           marker: this.marker,
+          signal: this.abortController.signal,
         });
 
         delayOnError = BASE_DELAY_MS;
@@ -36,7 +37,10 @@ export class Polling {
         await Promise.all(updates.map(handleUpdate));
       } catch (err) {
         if (err instanceof Error) {
-          if (err.name === 'AbortError') return;
+          if (err.name === 'AbortError') {
+            debug('Long polling aborted');
+            return;
+          }
 
           if (this.shouldRetry(err)) {
             debug(`Failed to fetch updates, retrying after ${delayOnError}ms.`, err);
@@ -46,7 +50,10 @@ export class Polling {
                 signal: this.abortController.signal,
               });
             } catch (timeoutErr: unknown) {
-              if (timeoutErr instanceof Error && timeoutErr.name === 'AbortError') return;
+              if (timeoutErr instanceof Error && timeoutErr.name === 'AbortError') {
+                debug('Long polling retry timeout aborted');
+                return;
+              }
               throw timeoutErr;
             }
 

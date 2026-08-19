@@ -42,7 +42,7 @@ export * from './bots/types';
 export * from './messages/types';
 export * from './subscriptions/types';
 
-export type FlattenReq<T extends Omit<ReqOptions, 'method'>> = T['body'] & T['query'] & T['path'];
+export type FlattenReq<T extends Omit<ReqOptions, 'method'>> = T['body'] & T['query'] & T['path'] & Pick<ReqOptions, 'signal'>;
 
 export type ApiMethods = {
   GET: {
