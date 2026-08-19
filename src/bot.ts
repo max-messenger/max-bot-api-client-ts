@@ -77,14 +77,14 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       await this.polling.loop(this.handleUpdate);
     } catch (error) {
       console.error('Unhandled error while polling \n\r', error);
-      needsRetry = !!options?.retry;
+      needsRetry = options?.retry ?? true;
     } finally {
       this.pollingIsStarted = false;
       debug('Long polling stopped');
     }
 
     if (needsRetry) {
-      debug('Retrying to restart long polling in 5000ms');
+      debug('Retrying to restart long polling in %dms', POLLING_RESTART_ON_ERROR_TIMEOUT);
       await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT);
       void this.start(options);
     }
