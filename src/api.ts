@@ -18,10 +18,10 @@ import type {
   EditMyInfoDTO, FlattenReq, GetUpdatesDTO, UpdateType,
 } from './core/network/api';
 import type {
-  EditChatExtra,
+  EditChatExtra, EditCommentExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra,
-  PinMessageExtra,
+  GetChatMembersExtra, GetCommentsExtra,
+  PinMessageExtra, SendCommentExtra,
 } from './core/network/api/modules';
 
 export class Api {
@@ -213,5 +213,55 @@ export class Api {
   uploadFile = async (options: UploadFileOptions) => {
     const data = await this.upload.file(options);
     return new FileAttachment({ token: data.token });
+  };
+
+  getComments = async (
+    messageId: string,
+    { comment_ids, ...extra }: GetCommentsExtra = {},
+  ) => {
+    return this.raw.comments.get({
+      messageId,
+      comment_ids: comment_ids?.join(','),
+      ...extra,
+    });
+  };
+
+  getComment = async (
+    messageId: string,
+    commentId: string,
+  ) => {
+    return this.raw.comments.getById({
+      messageId, commentId,
+    });
+  };
+
+  sendComment = async (
+    messageId: string,
+    text: string,
+    extra: SendCommentExtra,
+  ) => {
+    return this.raw.comments.send({
+      messageId, text, ...extra,
+    });
+  };
+
+  editComment = async (
+    messageId: string,
+    comment_id: string,
+    text: string,
+    extra: EditCommentExtra,
+  ) => {
+    return this.raw.comments.edit({
+      messageId, text, comment_id, ...extra,
+    });
+  };
+
+  deleteComment = async (
+    messageId: string,
+    comment_id: string,
+  ) => {
+    return this.raw.comments.delete({
+      messageId, comment_id,
+    });
   };
 }

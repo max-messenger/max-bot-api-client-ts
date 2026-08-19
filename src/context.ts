@@ -11,7 +11,7 @@ import { type Api } from './api';
 import {
   EditChatExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra,
+  GetChatMembersExtra, GetCommentsExtra,
   PinMessageExtra,
 } from './core/network/api/modules';
 
@@ -277,6 +277,21 @@ export class Context<U extends Update = Update> {
   async leaveChat() {
     this.assert(this.chatId, 'leaveChat');
     return this.api.leaveChat(this.chatId);
+  }
+
+  async getComments(messageId: string, extra?: GetCommentsExtra) {
+    this.assert(this.chatId, 'getComments');
+    return this.api.getComments(messageId, extra);
+  }
+
+  async getComment(messageId: string, commentId: string) {
+    this.assert(this.chatId, 'getComment');
+    return this.api.getComment(messageId, commentId);
+  }
+
+  async deleteComment(messageId: string, commentId: string) {
+    this.assert(this.chatId, 'deleteComment');
+    return this.api.deleteComment(messageId, commentId);
   }
 }
 

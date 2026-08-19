@@ -15,3 +15,6 @@ export * from './uploads/types';
 
 export { ChatsApi } from './chats/api';
 export * from './chats/types';
+
+export { CommentsApi } from './comments/api';
+export * from './comments/types';

@@ -37,6 +37,13 @@ import type {
 } from './messages/types';
 import type { GetUpdatesDTO, GetUpdatesResponse } from './subscriptions/types';
 import { GetUploadUrlResponse, GetUploadUrlDTO } from './uploads/types';
+import {
+  DeleteCommentDTO, DeleteCommentResponse,
+  EditCommentDTO, EditCommentResponse,
+  GetCommentDTO, GetCommentResponse,
+  GetCommentsDTO, GetCommentsResponse,
+  SendCommentDTO, SendCommentResponse,
+} from './comments/types';
 
 export * from './bots/types';
 export * from './messages/types';
@@ -89,6 +96,14 @@ export type ApiMethods = {
     'messages/{message_id}': {
       req: GetMessageDTO,
       res: GetMessageResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: GetCommentsDTO,
+      res: GetCommentsResponse,
+    }
+    'messages/{messageId}/comments/{commentId}': {
+      req: GetCommentDTO,
+      res: GetCommentResponse
     }
   },
   POST: {
@@ -111,6 +126,10 @@ export type ApiMethods = {
     answers: {
       req: AnswerOnCallbackDTO,
       res: AnswerOnCallbackResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: SendCommentDTO,
+      res: SendCommentResponse,
     }
   },
   PATCH: {
@@ -131,6 +150,10 @@ export type ApiMethods = {
     'chats/{chat_id}/pin': {
       req: PinMessageDTO,
       res: PinMessageResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: EditCommentDTO,
+      res: EditCommentResponse,
     }
   },
   DELETE: {
@@ -150,5 +173,9 @@ export type ApiMethods = {
       req: LeaveChatDTO,
       res: LeaveChatResponse,
     },
+    'messages/{messageId}/comments': {
+      req: DeleteCommentDTO,
+      res: DeleteCommentResponse,
+    }
   }
 };
