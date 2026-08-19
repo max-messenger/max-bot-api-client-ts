@@ -175,12 +175,11 @@ export class Upload {
     options: UploadRequestOptions = {},
   ) => {
     const body = new FormDataStream();
-    body.append('data', {
-      [Symbol.toStringTag]: 'File',
-      name: file.fileName,
-      stream: () => file.stream,
-      size: file.contentLength,
-    } as unknown as File);
+
+    body.append('data', file.stream, {
+      filename: file.fileName,
+      knownLength: file.contentLength,
+    });
 
     const result = await this.streamUploadClient.post<Res>(
       uploadUrl,
