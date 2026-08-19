@@ -19,10 +19,10 @@ type BotConfig<Ctx extends Context> = {
   contextType: new (...args: ConstructorParameters<typeof Context>) => Ctx;
 };
 
-type LaunchOptions = {
+type LaunchOptions = Partial<{
   allowedUpdates: UpdateType[],
-  retry?: boolean
-};
+  retry: boolean
+}>;
 
 const defaultConfig: BotConfig<Context> = {
   contextType: Context,
@@ -76,7 +76,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       debug(`Starting @${this.botInfo.username}`);
       await this.polling.loop(this.handleUpdate);
     } catch (error) {
-      console.error('Unhandled error while polling', error);
+      console.error('Unhandled error while polling \n\r', error);
       needsRetry = !!options?.retry;
     } finally {
       this.pollingIsStarted = false;
