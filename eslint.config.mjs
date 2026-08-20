@@ -45,7 +45,9 @@ export default tseslint.config(
       'no-underscore-dangle': ['error', { 'allowAfterThis': true }],
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn'
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-continue': 'off',
+      'no-void': ['error', { 'allowAsStatement': true }]
     },
   }
 );

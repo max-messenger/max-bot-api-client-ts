@@ -1,5 +1,6 @@
+import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
-import { Api } from './api'; 
+import { Api } from './api';
 import { Composer } from './composer';
 import { Context } from './context';
 import { MaybePromise } from './core/helpers/types';
@@ -11,15 +12,17 @@ import { Polling } from './core/network/polling';
 
 
 const debug = createDebug('max:main');
+const POLLING_RESTART_ON_ERROR_TIMEOUT = 5000;
 
 type BotConfig<Ctx extends Context> = {
   clientOptions?: ClientOptions;
   contextType: new (...args: ConstructorParameters<typeof Context>) => Ctx;
 };
 
-type LaunchOptions = {
+type LaunchOptions = Partial<{
   allowedUpdates: UpdateType[],
-};
+  retry: boolean
+}>;
 
 const defaultConfig: BotConfig<Context> = {
   contextType: Context,
@@ -27,6 +30,8 @@ const defaultConfig: BotConfig<Context> = {
 
 export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   api: Api;
+
+  private abortController: AbortController | undefined;
 
   public botInfo?: BotInfo;
 
@@ -63,13 +68,32 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       return;
     }
 
+    this.abortController = new AbortController();
+
     this.pollingIsStarted = true;
+    let needsRetry = false;
 
-    this.botInfo ??= await this.api.getMyInfo();
-    this.polling = new Polling(this.api, options?.allowedUpdates);
+    try {
+      this.botInfo ??= await this.api.getMyInfo();
+      this.polling = new Polling(this.api, this.abortController, options?.allowedUpdates);
 
-    debug(`Starting @${this.botInfo.username}`);
-    await this.polling.loop(this.handleUpdate);
+      debug(`Starting @${this.botInfo.username}`);
+      await this.polling.loop(this.handleUpdate);
+    } catch (error) {
+      console.error('Unhandled error while polling \n\r', error);
+      needsRetry = options?.retry ?? true;
+    } finally {
+      this.pollingIsStarted = false;
+      debug('Long polling stopped');
+    }
+
+    if (needsRetry) {
+      debug('Retrying to restart long polling in %dms', POLLING_RESTART_ON_ERROR_TIMEOUT);
+      await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT, undefined, {
+        signal: this.abortController.signal,
+      });
+      void this.start(options);
+    }
   };
 
   stop = () => {

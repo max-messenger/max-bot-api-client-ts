@@ -67,16 +67,29 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
       };
     }
 
-    return {
-      status: res.status,
-      data: await res.json(),
-    };
+    return getJsonResponse(res);
   };
 
   return { call };
 };
 
 export type Client = ReturnType<typeof createClient>;
+
+const getJsonResponse = async (res: Response) => {
+  try {
+    const data = await res.json();
+    return { status: res.status, data };
+  } catch {
+    const contentType = res.headers.get('content-type') ?? 'unknown';
+    return {
+      status: res.status,
+      data: {
+        code: 'unexpected.response',
+        message: `Failed to parse JSON. Content-Type was "${contentType}"`,
+      },
+    };
+  }
+};
 
 const getResponseInit = (body?: ReqOptions['body']): RequestInit => {
   if (!body) return {};
