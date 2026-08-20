@@ -90,16 +90,13 @@ export type ImageUploadResult = {
 };
 
 export type VideoUploadResult = {
-  id: number,
   token: string,
 };
 
 export type FileUploadResult = {
-  id: number,
   token: string,
 };
 
 export type AudioUploadResult = {
-  id: number,
   token: string,
 };

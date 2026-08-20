@@ -16,6 +16,7 @@ export class StreamUploadClient {
     url: string,
     body: FormDataStream | string | Buffer,
     options: StreamUploadOptions = {},
+    token?: string,
   ): Promise<{ data: T }> {
     const urlObj = new URL(url);
     const isSecure = urlObj.protocol === 'https:';
@@ -85,9 +86,12 @@ export class StreamUploadClient {
           }
 
           try {
+            // Тип текст возвращается при загрузке потока чанками
             resolve({ data: (options.responseType === 'text' ? responseData : JSON.parse(responseData)) as T });
           } catch {
-            resolve({ data: responseData as T });
+            // Необходимо для обработки успешной загрузки видео,
+            // тк Bot Api возвращает <retval>1</retval>
+            resolve({ data: { token } as T });
           }
         });
       });
