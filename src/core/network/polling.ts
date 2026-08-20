@@ -10,12 +10,11 @@ const BASE_DELAY_MS = 5_000; // ms
 const MAX_DELAY_MS = 60_000; // ms
 
 export class Polling {
-  private readonly abortController = new AbortController();
-
   private marker?: number;
 
   constructor(
     private readonly api: Api,
+    private readonly abortController: AbortController,
     private readonly allowedUpdates: UpdateType[] = [],
   ) {}
 

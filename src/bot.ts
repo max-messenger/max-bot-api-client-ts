@@ -31,6 +31,8 @@ const defaultConfig: BotConfig<Context> = {
 export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   api: Api;
 
+  private abortController: AbortController | undefined;
+
   public botInfo?: BotInfo;
 
   private polling?: Polling;
@@ -66,12 +68,14 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       return;
     }
 
+    this.abortController = new AbortController();
+
     this.pollingIsStarted = true;
     let needsRetry = false;
 
     try {
       this.botInfo ??= await this.api.getMyInfo();
-      this.polling = new Polling(this.api, options?.allowedUpdates);
+      this.polling = new Polling(this.api, this.abortController, options?.allowedUpdates);
 
       debug(`Starting @${this.botInfo.username}`);
       await this.polling.loop(this.handleUpdate);
@@ -85,7 +89,9 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
     if (needsRetry) {
       debug('Retrying to restart long polling in %dms', POLLING_RESTART_ON_ERROR_TIMEOUT);
-      await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT);
+      await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT, undefined, {
+        signal: this.abortController.signal,
+      });
       void this.start(options);
     }
   };
