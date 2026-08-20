@@ -1,10 +1,7 @@
-export type ButtonIntent = 'default' | 'positive' | 'negative';
-
 export type CallbackButton = {
   type: 'callback';
   text: string;
   payload: string;
-  intent?: ButtonIntent;
 };
 
 export type LinkButton = {
@@ -33,9 +30,18 @@ export type ChatButton = {
   uuid?: string | null;
 };
 
+export type OpenAppButton = {
+  type: 'open_app';
+  text: string;
+  web_app?: string | null;
+  contact_id?: number | null;
+  payload?: string | null;
+};
+
 export type Button =
   | CallbackButton
   | LinkButton
   | RequestContactButton
   | RequestGeoLocationButton
-  | ChatButton;
+  | ChatButton
+  | OpenAppButton;

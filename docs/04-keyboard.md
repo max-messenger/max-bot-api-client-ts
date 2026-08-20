@@ -6,8 +6,8 @@ const keyboard = Keyboard.inlineKeyboard([
   // 1-я строка с 3-мя кнопками
   [
     Keyboard.button.callback('default', 'color:default'),
-    Keyboard.button.callback('positive', 'color:positive', { intent: 'positive' }),
-    Keyboard.button.callback('negative', 'color:negative', { intent: 'negative' }),
+    Keyboard.button.callback('positive', 'color:positive'),
+    Keyboard.button.callback('negative', 'color:negative'),
   ], 
   // 2-я строка с 1-й кнопкой
   [Keyboard.button.link('Открыть Max', 'https://max.ru')],
@@ -17,9 +17,7 @@ const keyboard = Keyboard.inlineKeyboard([
 
 #### Callback
 ```typescript
-button.callback(text: string, payload: string, extra?: { 
-  intent?: 'default' | 'positive' | 'negative' 
-});
+button.callback(text: string, payload: string);
 ```
 Добавляет callback-кнопку. При нажатии на неё сервер Max отправляет обновление `message_callback`.
 
@@ -33,7 +31,7 @@ button.link(text: string, url: string);
 ```typescript
 button.requestContact(text: string);
 ```
-Добавляет кнопку запроса контакта. При нажатии на неё боту будет отправлено сообщение с номером телефона, полным имененм и почтой пользователя во вложении в формате `VCF`.
+Добавляет кнопку запроса контакта. При нажатии на неё боту будет отправлено сообщение с номером телефона, полным именем и почтой пользователя во вложении в формате `VCF`.
 
 #### RequestGeoLocation
 ```typescript
@@ -50,3 +48,9 @@ button.chat(text: string, chatTitle: string, extra?: {
 });
 ```
 Добавляет кнопку создания чата. При нажатии на неё будет создан новый чат с ботом и пользователем.
+
+#### OpenApp
+```typescript
+button.openApp(text: string, webApp?: string, contactId?: number, payload?: string);
+```
+Добавляет кнопку для запуска мини-приложения. При нажатии на неё откроется окно с мини-приложением бота, ссылка на которого указана в параметре webApp.

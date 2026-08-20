@@ -1,25 +1,38 @@
 import vCard from 'vcf';
 import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
 import type {
-  AnswerOnCallbackExtra, BotInfo, BotStartedUpdate, Chat,
-  EditMessageExtra, FilteredUpdate, GetMessagesExtra, Message,
-  MessageCallbackUpdate, SenderAction, SendMessageExtra,
-  Update, UpdateType, User,
+  AnswerOnCallbackExtra,
+  BotInfo,
+  BotStartedUpdate,
+  Chat,
+  EditMessageExtra,
+  FilteredUpdate,
+  GetMessagesExtra,
+  Message,
+  MessageCallbackUpdate,
+  SenderAction,
+  SendMessageExtra,
+  Update,
+  UpdateType,
+  User,
 } from './core/network/api';
 
 import { type Api } from './api';
 import {
   EditChatExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra, GetCommentsExtra,
+  GetChatMembersExtra,
+  GetCommentsExtra,
   PinMessageExtra,
 } from './core/network/api/modules';
 
 export type FilteredContext<
-  Ctx extends Context,
+  Ctx extends Context<any>,
   Filter extends UpdateType | Guard<Ctx['update']>,
 > = Filter extends UpdateType
-  ? Ctx & Context<FilteredUpdate<Filter>>
+  ? FilteredUpdate<Filter> extends infer U extends Update
+    ? Ctx & Context<U>
+    : never
   : Ctx & Context<Guarded<Filter>>;
 
 type GetMessage<U extends Update> =

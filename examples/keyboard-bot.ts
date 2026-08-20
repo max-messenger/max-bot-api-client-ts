@@ -14,7 +14,7 @@ bot.api.setMyCommands([
 
 const defaultKeyboard = [
   [Keyboard.button.link('❤️', 'https://dev.max.ru/')],
-  [Keyboard.button.callback('Remove message', 'remove_message', { intent: 'negative' })],
+  [Keyboard.button.callback('Remove message', 'remove_message')],
 ];
 
 bot.action('remove_message', async (ctx) => {
@@ -31,8 +31,8 @@ bot.action('remove_message', async (ctx) => {
 const callbackKeyboard = Keyboard.inlineKeyboard([
   [
     Keyboard.button.callback('default', 'color:default'),
-    Keyboard.button.callback('positive', 'color:positive', { intent: 'positive' }),
-    Keyboard.button.callback('negative', 'color:negative', { intent: 'negative' }),
+    Keyboard.button.callback('positive', 'color:positive'),
+    Keyboard.button.callback('negative', 'color:negative'),
   ],
   ...defaultKeyboard,
 ]);

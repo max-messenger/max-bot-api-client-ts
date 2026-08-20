@@ -1,14 +1,13 @@
-import type { BotCommand, BotInfo, PhotoAttachmentRequestPayload } from '../../types';
+import type { BotCommand, BotInfo } from '../../types';
 
 export type GetMyInfoResponse = BotInfo;
 
-export type EditMyInfoDTO = {
+export type EditMyCommandsDTO = {
   body: {
-    name?: string | null;
-    description?: string | null;
-    commands?: BotCommand[] | null;
-    photo?: PhotoAttachmentRequestPayload;
+    commands: BotCommand[]
   }
 };
 
-export type EditMyInfoResponse = BotInfo;
+export type EditMyCommandsResponse = {
+  commands: BotCommand[]
+};
