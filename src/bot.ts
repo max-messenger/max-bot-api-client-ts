@@ -1,4 +1,5 @@
 import createDebug from 'debug';
+import { Api } from './api'; 
 import { Composer } from './composer';
 import { Context } from './context';
 import { MaybePromise } from './core/helpers/types';
@@ -8,7 +9,6 @@ import {
 } from './core/network/api';
 import { Polling } from './core/network/polling';
 
-import { Api } from './api';
 
 const debug = createDebug('max:main');
 
@@ -39,7 +39,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   constructor(token: string, config?: Partial<BotConfig<Ctx>>) {
     super();
 
-    // @ts-ignore
+    // @ts-expect-error ignore
     this.config = { ...defaultConfig, ...config };
     this.api = new Api(createClient(token, this.config.clientOptions));
 

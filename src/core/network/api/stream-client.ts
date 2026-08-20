@@ -1,10 +1,10 @@
+import http from 'node:http';
+import https from 'node:https';
 import { Readable } from 'node:stream';
 import FormDataStream from 'form-data';
 
-import https from 'node:https';
-import http from 'node:http';
-import { StreamUploadOptions } from './types';
 import { MaxError } from './error';
+import { StreamUploadOptions } from './types';
 
 const CLIENT_CLOSED_REQUEST_STATUS = 499;
 const ERROR_STATUS_THRESHOLD = 400;
@@ -17,7 +17,7 @@ export class StreamUploadClient {
     body: FormDataStream | string | Buffer,
     options: StreamUploadOptions = {},
     token?: string,
-  ): Promise<{ data: T }> {
+  ): Promise<{ data: T }> { 
     const urlObj = new URL(url);
     const isSecure = urlObj.protocol === 'https:';
 

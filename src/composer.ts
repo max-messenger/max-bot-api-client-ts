@@ -1,14 +1,14 @@
+import { Context, type FilteredContext } from './context';
 import type { Guard, MaybeArray } from './core/helpers/types';
 import type { Message, UpdateType } from './core/network/api';
 
+import { createdMessageBodyHas } from './filters';
 import type {
   Middleware, MiddlewareFn, MiddlewareObj, NextFn,
 } from './middleware';
 
-import { Context, type FilteredContext } from './context';
-import { createdMessageBodyHas } from './filters';
 
-type Triggers = MaybeArray<string | RegExp>;
+type Triggers = MaybeArray<string | RegExp>; 
 
 type UpdateFilter<Ctx extends Context> = UpdateType | Guard<Ctx['update']>;
 
@@ -160,7 +160,6 @@ const normalizeTriggers = (triggers: Triggers) => {
   return (Array.isArray(triggers) ? triggers : [triggers]).map((trigger) => {
     if (trigger instanceof RegExp) {
       return (value = '') => {
-        // eslint-disable-next-line no-param-reassign
         trigger.lastIndex = 0;
         return trigger.exec(value.trim());
       };
