@@ -1,4 +1,5 @@
 import vCard from 'vcf';
+import { type Api } from './api';
 import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
 import type {
   AnswerOnCallbackExtra,
@@ -15,9 +16,8 @@ import type {
   Update,
   UpdateType,
   User,
-} from './core/network/api';
+} from './core/network/api'; 
 
-import { type Api } from './api';
 import {
   EditChatExtra,
   GetAllChatsExtra,
@@ -360,7 +360,6 @@ const getContactInfo = (update: Update): ContactInfo | undefined => {
     return attachment.type === 'contact';
   });
   if (!contact?.payload.vcf_info) return undefined;
-  // eslint-disable-next-line new-cap
   const vcf = new vCard().parse(contact.payload.vcf_info);
   return {
     tel: vcf.get('tel').valueOf() as string | undefined,

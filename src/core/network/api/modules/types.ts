@@ -1,7 +1,8 @@
 import { ReqOptions } from '../client';
 import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
 import type {
-  AddChatMembersDTO, AddChatMembersResponse,
+  AddChatMembersDTO,
+  AddChatMembersResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
   GetAllChatsDTO,
@@ -17,14 +18,23 @@ import type {
   GetPinnedMessageDTO,
   GetPinnedMessageResponse,
   LeaveChatDTO,
-  LeaveChatResponse,
+  LeaveChatResponse, 
   PinMessageDTO,
-  PinMessageResponse, RemoveChatMemberDTO, RemoveChatMemberResponse,
+  PinMessageResponse,
+  RemoveChatMemberDTO,
+  RemoveChatMemberResponse,
   SendActionDTO,
   SendActionResponse,
   UnpinMessageDTO,
   UnpinMessageResponse,
 } from './chats/types';
+import {
+  DeleteCommentDTO, DeleteCommentResponse,
+  EditCommentDTO, EditCommentResponse,
+  GetCommentDTO, GetCommentResponse,
+  GetCommentsDTO, GetCommentsResponse,
+  SendCommentDTO, SendCommentResponse,
+} from './comments/types';
 import type {
   AnswerOnCallbackDTO, AnswerOnCallbackResponse,
   DeleteMessageDTO, DeleteMessageResponse,
@@ -35,13 +45,6 @@ import type {
 } from './messages/types';
 import type { GetUpdatesDTO, GetUpdatesResponse } from './subscriptions/types';
 import { GetUploadUrlResponse, GetUploadUrlDTO } from './uploads/types';
-import {
-  DeleteCommentDTO, DeleteCommentResponse,
-  EditCommentDTO, EditCommentResponse,
-  GetCommentDTO, GetCommentResponse,
-  GetCommentsDTO, GetCommentsResponse,
-  SendCommentDTO, SendCommentResponse,
-} from './comments/types';
 
 export * from './bots/types';
 export * from './messages/types';

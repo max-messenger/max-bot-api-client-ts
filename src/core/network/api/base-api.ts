@@ -5,9 +5,9 @@ import type { ApiMethods } from './modules/types';
 
 type ApiCallFn<HTTPMethod extends keyof ApiMethods> = <Method extends keyof ApiMethods[HTTPMethod]>(
   method: Method,
-  // @ts-ignore
+  // @ts-expect-error ругается на req, который там есть
   options: ApiMethods[HTTPMethod][Method]['req'] & { signal?: AbortSignal }
-  // @ts-ignore
+  // @ts-expect-error ругается на req, который там есть
 ) => Promise<ApiMethods[HTTPMethod][Method]['res']>;
 
 export class BaseApi {

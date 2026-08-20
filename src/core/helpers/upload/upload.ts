@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
 import path from 'node:path';
 import FormDataStream from 'form-data';
 
-import fs from 'node:fs';
 import { type Api } from '../../../api';
 import {
   StreamUploadClient,
@@ -16,7 +16,7 @@ import type {
   DefaultOptions,
   FileUploadResult,
   AudioUploadResult,
-  VideoUploadResult,
+  VideoUploadResult, 
   ImageUploadResult,
   UploadFileOptions,
   UploadVideoOptions,
@@ -261,7 +261,6 @@ export class Upload {
   ) => {
     const size = file.contentLength;
     let startByte = 0;
-    let endByte = 0;
 
     const progressContext = { totalUploadedBefore: 0 };
     const handleChunkProgress = this.createProgressHandler(
@@ -271,7 +270,7 @@ export class Upload {
     );
 
     for await (const chunk of file.stream) {
-      endByte = startByte + chunk.length - 1;
+      const endByte = startByte + chunk.length - 1;
       const currentChunkLength = chunk.length;
 
       await this.uploadRangeChunk({

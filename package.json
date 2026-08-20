@@ -6,7 +6,7 @@
   "author": "Juice Development",
   "license": "MIT",
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20.19.0"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,20 +32,19 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "eslint ./src --ext ts --report-unused-disable-directives"
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/debug": "^4.1.13",
     "@types/node": "^24.13.3",
     "@types/vcf": "^2.0.7",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.1",
-    "eslint-config-airbnb-base": "15.0.0",
-    "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-plugin-import": "^2.32.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-import-x": "^4.0.0",
+    "globals": "^15.15.0",
     "nodemon": "^3.1.14",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.24.1"
   },
   "dependencies": {
     "debug": "^4.4.3",
@@ -54,6 +53,7 @@
   },
   "overrides": {
     "flatted": "^3.4.4",
+    "picomatch": "^2.3.2",
     "@typescript-eslint/typescript-estree": {
       "minimatch": "^9.0.9"
     }
