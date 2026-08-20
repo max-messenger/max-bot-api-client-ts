@@ -39,7 +39,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   constructor(token: string, config?: Partial<BotConfig<Ctx>>) {
     super();
 
-    // @ts-expect-error ignore
+    // @ts-expect-error ожидаемое
     this.config = { ...defaultConfig, ...config };
     this.api = new Api(createClient(token, this.config.clientOptions));
 
