@@ -73,6 +73,7 @@ export class Polling {
   private shouldRetry = (err: unknown): boolean => {
     if (!(err instanceof Error)) return false;
     if (err instanceof MaxError) return err.status === 429 || err.status >= 500;
-    return err.name === 'FetchError' || err.name === 'TypeError';
+
+    return err.name === 'TypeError';
   };
 }
