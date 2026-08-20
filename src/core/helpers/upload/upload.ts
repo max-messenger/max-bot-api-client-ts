@@ -141,9 +141,6 @@ export class Upload {
 
       return {
         token,
-        file,
-        uploadUrl,
-        abortController,
       } as Res;
     }
 
@@ -155,6 +152,7 @@ export class Upload {
 
   private uploadFromBuffer = async <Res>({
     file,
+    token,
     uploadUrl,
     abortController,
     onUploadProgress,
@@ -162,10 +160,15 @@ export class Upload {
     const formData = new FormDataStream();
     formData.append('data', file.buffer, file.fileName);
 
-    const result = await this.streamUploadClient.post<Res>(uploadUrl, formData, {
-      signal: abortController?.signal,
-      onUploadProgress,
-    });
+    const result = await this.streamUploadClient.post<Res>(
+      uploadUrl,
+      formData,
+      {
+        signal: abortController?.signal,
+        onUploadProgress,
+      },
+      token,
+    );
 
     return result.data as Res;
   };
@@ -196,19 +199,24 @@ export class Upload {
     }: UploadRangeChunkParams,
     options: UploadRequestOptions = {},
   ) => {
-    const result = await this.streamUploadClient.post<string>(uploadUrl, chunk, {
-      responseType: 'text',
-      signal: options.signal,
-      onUploadProgress,
-      headers: {
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
-        'Content-Type': 'application/x-binary; charset=x-user-defined',
-        'X-File-Name': fileName,
-        'X-Uploading-Mode': 'parallel',
-        Connection: 'keep-alive',
+    // Возвращает составной идентификатор чанка
+    const result = await this.streamUploadClient.post<string>(
+      uploadUrl,
+      chunk,
+      {
+        responseType: 'text',
+        signal: options.signal,
+        onUploadProgress,
+        headers: {
+          'Content-Disposition': `attachment; filename="${fileName}"`,
+          'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
+          'Content-Type': 'application/x-binary; charset=x-user-defined',
+          'X-File-Name': fileName,
+          'X-Uploading-Mode': 'parallel',
+          Connection: 'keep-alive',
+        },
       },
-    });
+    );
 
     return result.data;
   };
