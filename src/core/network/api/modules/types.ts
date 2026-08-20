@@ -1,7 +1,8 @@
 import { ReqOptions } from '../client';
 import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
 import type {
-  AddChatMembersDTO, AddChatMembersResponse,
+  AddChatMembersDTO,
+  AddChatMembersResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
   GetAllChatsDTO,
@@ -10,8 +11,6 @@ import type {
   GetChatAdminsResponse,
   GetChatByIdDTO,
   GetChatByIdResponse,
-  GetChatByLinkDTO,
-  GetChatByLinkResponse,
   GetChatMembersDTO,
   GetChatMembershipDTO,
   GetChatMembershipResponse,
@@ -19,14 +18,23 @@ import type {
   GetPinnedMessageDTO,
   GetPinnedMessageResponse,
   LeaveChatDTO,
-  LeaveChatResponse,
+  LeaveChatResponse, 
   PinMessageDTO,
-  PinMessageResponse, RemoveChatMemberDTO, RemoveChatMemberResponse,
+  PinMessageResponse,
+  RemoveChatMemberDTO,
+  RemoveChatMemberResponse,
   SendActionDTO,
   SendActionResponse,
   UnpinMessageDTO,
   UnpinMessageResponse,
 } from './chats/types';
+import {
+  DeleteCommentDTO, DeleteCommentResponse,
+  EditCommentDTO, EditCommentResponse,
+  GetCommentDTO, GetCommentResponse,
+  GetCommentsDTO, GetCommentsResponse,
+  SendCommentDTO, SendCommentResponse,
+} from './comments/types';
 import type {
   AnswerOnCallbackDTO, AnswerOnCallbackResponse,
   DeleteMessageDTO, DeleteMessageResponse,
@@ -70,10 +78,6 @@ export type ApiMethods = {
       req: GetPinnedMessageDTO,
       res: GetPinnedMessageResponse,
     },
-    'chats/{chat_link}': {
-      req: GetChatByLinkDTO,
-      res: GetChatByLinkResponse,
-    },
     me: {
       req: {},
       res: GetMyInfoResponse,
@@ -89,6 +93,14 @@ export type ApiMethods = {
     'messages/{message_id}': {
       req: GetMessageDTO,
       res: GetMessageResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: GetCommentsDTO,
+      res: GetCommentsResponse,
+    }
+    'messages/{messageId}/comments/{commentId}': {
+      req: GetCommentDTO,
+      res: GetCommentResponse
     }
   },
   POST: {
@@ -111,6 +123,10 @@ export type ApiMethods = {
     answers: {
       req: AnswerOnCallbackDTO,
       res: AnswerOnCallbackResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: SendCommentDTO,
+      res: SendCommentResponse,
     }
   },
   PATCH: {
@@ -131,6 +147,10 @@ export type ApiMethods = {
     'chats/{chat_id}/pin': {
       req: PinMessageDTO,
       res: PinMessageResponse,
+    },
+    'messages/{messageId}/comments': {
+      req: EditCommentDTO,
+      res: EditCommentResponse,
     }
   },
   DELETE: {
@@ -150,5 +170,9 @@ export type ApiMethods = {
       req: LeaveChatDTO,
       res: LeaveChatResponse,
     },
+    'messages/{messageId}/comments': {
+      req: DeleteCommentDTO,
+      res: DeleteCommentResponse,
+    }
   }
 };

@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
 import path from 'node:path';
 import FormDataStream from 'form-data';
 
-import fs from 'node:fs';
 import { type Api } from '../../../api';
 import {
   StreamUploadClient,
@@ -16,7 +16,7 @@ import type {
   DefaultOptions,
   FileUploadResult,
   AudioUploadResult,
-  VideoUploadResult,
+  VideoUploadResult, 
   ImageUploadResult,
   UploadFileOptions,
   UploadVideoOptions,
@@ -141,9 +141,6 @@ export class Upload {
 
       return {
         token,
-        file,
-        uploadUrl,
-        abortController,
       } as Res;
     }
 
@@ -155,6 +152,7 @@ export class Upload {
 
   private uploadFromBuffer = async <Res>({
     file,
+    token,
     uploadUrl,
     abortController,
     onUploadProgress,
@@ -162,10 +160,15 @@ export class Upload {
     const formData = new FormDataStream();
     formData.append('data', file.buffer, file.fileName);
 
-    const result = await this.streamUploadClient.post<Res>(uploadUrl, formData, {
-      signal: abortController?.signal,
-      onUploadProgress,
-    });
+    const result = await this.streamUploadClient.post<Res>(
+      uploadUrl,
+      formData,
+      {
+        signal: abortController?.signal,
+        onUploadProgress,
+      },
+      token,
+    );
 
     return result.data as Res;
   };
@@ -175,12 +178,11 @@ export class Upload {
     options: UploadRequestOptions = {},
   ) => {
     const body = new FormDataStream();
-    body.append('data', {
-      [Symbol.toStringTag]: 'File',
-      name: file.fileName,
-      stream: () => file.stream,
-      size: file.contentLength,
-    } as unknown as File);
+
+    body.append('data', file.stream, {
+      filename: file.fileName,
+      knownLength: file.contentLength,
+    });
 
     const result = await this.streamUploadClient.post<Res>(
       uploadUrl,
@@ -197,19 +199,24 @@ export class Upload {
     }: UploadRangeChunkParams,
     options: UploadRequestOptions = {},
   ) => {
-    const result = await this.streamUploadClient.post<string>(uploadUrl, chunk, {
-      responseType: 'text',
-      signal: options.signal,
-      onUploadProgress,
-      headers: {
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
-        'Content-Type': 'application/x-binary; charset=x-user-defined',
-        'X-File-Name': fileName,
-        'X-Uploading-Mode': 'parallel',
-        Connection: 'keep-alive',
+    // Возвращает составной идентификатор чанка
+    const result = await this.streamUploadClient.post<string>(
+      uploadUrl,
+      chunk,
+      {
+        responseType: 'text',
+        signal: options.signal,
+        onUploadProgress,
+        headers: {
+          'Content-Disposition': `attachment; filename="${fileName}"`,
+          'Content-Range': `bytes ${startByte}-${endByte}/${fileSize}`,
+          'Content-Type': 'application/x-binary; charset=x-user-defined',
+          'X-File-Name': fileName,
+          'X-Uploading-Mode': 'parallel',
+          Connection: 'keep-alive',
+        },
       },
-    });
+    );
 
     return result.data;
   };
@@ -254,7 +261,6 @@ export class Upload {
   ) => {
     const size = file.contentLength;
     let startByte = 0;
-    let endByte = 0;
 
     const progressContext = { totalUploadedBefore: 0 };
     const handleChunkProgress = this.createProgressHandler(
@@ -264,7 +270,7 @@ export class Upload {
     );
 
     for await (const chunk of file.stream) {
-      endByte = startByte + chunk.length - 1;
+      const endByte = startByte + chunk.length - 1;
       const currentChunkLength = chunk.length;
 
       await this.uploadRangeChunk({

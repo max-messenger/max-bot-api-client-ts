@@ -1,7 +1,7 @@
 import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
-import { MaxError } from '../../error';
 import { BaseApi } from '../../base-api';
+import { MaxError } from '../../error';
 import {
   FlattenReq,
   GetMessageDTO,
@@ -11,11 +11,11 @@ import {
   SendMessageOptions,
   SendMessageResponse,
 } from '../types';
-import type { SendMessageDTO, DeleteMessageDTO } from './types';
 import { SEND_MESSAGE_RETRIES_COUNT, SEND_MESSAGE_RETRY_DELAY_BASE_TIME } from './const';
+import type { SendMessageDTO, DeleteMessageDTO } from './types';
 
 const debug = createDebug('max:messages');
-
+ 
 export class MessagesApi extends BaseApi {
   get = async ({ ...query }: FlattenReq<GetMessagesDTO>): Promise<GetMessagesResponse> => {
     return this._get('messages', {

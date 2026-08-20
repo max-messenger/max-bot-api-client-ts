@@ -5,13 +5,13 @@ import {
   VideoAttachment,
 } from './core/helpers/attachments';
 import type { MaybeArray } from './core/helpers/types';
-import { Upload } from './core/helpers/upload/upload';
 import type {
   UploadFileOptions,
   UploadImageOptions,
   UploadVideoOptions,
-  UploadAudioOptions,
+  UploadAudioOptions, 
 } from './core/helpers/upload';
+import { Upload } from './core/helpers/upload/upload';
 
 import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 
@@ -21,10 +21,10 @@ import type {
   FlattenReq, GetUpdatesDTO, UpdateType,
 } from './core/network/api';
 import type {
-  EditChatExtra,
+  EditChatExtra, EditCommentExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra,
-  PinMessageExtra,
+  GetChatMembersExtra, GetCommentsExtra,
+  PinMessageExtra, SendCommentExtra,
 } from './core/network/api/modules';
 
 export class Api {
@@ -55,10 +55,6 @@ export class Api {
 
   getChat = async (id: number) => {
     return this.raw.chats.getById({ chat_id: id });
-  };
-
-  getChatByLink = async (link: string) => {
-    return this.raw.chats.getByLink({ chat_link: link });
   };
 
   editChatInfo = async (chatId: number, extra: EditChatExtra) => {
@@ -214,5 +210,55 @@ export class Api {
   uploadFile = async (options: UploadFileOptions) => {
     const data = await this.upload.file(options);
     return new FileAttachment({ token: data.token });
+  };
+
+  getComments = async (
+    messageId: string,
+    { comment_ids, ...extra }: GetCommentsExtra = {},
+  ) => {
+    return this.raw.comments.get({
+      messageId,
+      comment_ids: comment_ids?.join(','),
+      ...extra,
+    });
+  };
+
+  getComment = async (
+    messageId: string,
+    commentId: string,
+  ) => {
+    return this.raw.comments.getById({
+      messageId, commentId,
+    });
+  };
+
+  sendComment = async (
+    messageId: string,
+    text: string,
+    extra: SendCommentExtra,
+  ) => {
+    return this.raw.comments.send({
+      messageId, text, ...extra,
+    });
+  };
+
+  editComment = async (
+    messageId: string,
+    comment_id: string,
+    text: string,
+    extra: EditCommentExtra,
+  ) => {
+    return this.raw.comments.edit({
+      messageId, text, comment_id, ...extra,
+    });
+  };
+
+  deleteComment = async (
+    messageId: string,
+    comment_id: string,
+  ) => {
+    return this.raw.comments.delete({
+      messageId, comment_id,
+    });
   };
 }

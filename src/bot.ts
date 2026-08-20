@@ -1,5 +1,6 @@
-import createDebug from 'debug';
 import { setTimeout } from 'node:timers/promises';
+import createDebug from 'debug';
+import { Api } from './api';
 import { Composer } from './composer';
 import { Context } from './context';
 import { MaybePromise } from './core/helpers/types';
@@ -9,7 +10,6 @@ import {
 } from './core/network/api';
 import { Polling } from './core/network/polling';
 
-import { Api } from './api';
 
 const debug = createDebug('max:main');
 const POLLING_RESTART_ON_ERROR_TIMEOUT = 5000;
@@ -44,7 +44,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   constructor(token: string, config?: Partial<BotConfig<Ctx>>) {
     super();
 
-    // @ts-ignore
+    // @ts-expect-error ожидаемое
     this.config = { ...defaultConfig, ...config };
     this.api = new Api(createClient(token, this.config.clientOptions));
 

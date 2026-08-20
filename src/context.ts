@@ -1,4 +1,5 @@
 import vCard from 'vcf';
+import { type Api } from './api';
 import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
 import type {
   AnswerOnCallbackExtra,
@@ -15,11 +16,14 @@ import type {
   Update,
   UpdateType,
   User,
-} from './core/network/api';
+} from './core/network/api'; 
 
-import { type Api } from './api';
 import {
-  EditChatExtra, GetAllChatsExtra, GetChatMembersExtra, PinMessageExtra,
+  EditChatExtra,
+  GetAllChatsExtra,
+  GetChatMembersExtra,
+  GetCommentsExtra,
+  PinMessageExtra,
 } from './core/network/api/modules';
 
 export type FilteredContext<
@@ -202,10 +206,6 @@ export class Context<U extends Update = Update> {
     return this.api.getChat(this.chatId);
   }
 
-  async getChatByLink(link: string) {
-    return this.api.getChatByLink(link);
-  }
-
   async editChatInfo(extra: EditChatExtra) {
     this.assert(this.chatId, 'editChatInfo');
     return this.api.editChatInfo(this.chatId, extra);
@@ -287,6 +287,21 @@ export class Context<U extends Update = Update> {
     this.assert(this.chatId, 'leaveChat');
     return this.api.leaveChat(this.chatId);
   }
+
+  async getComments(messageId: string, extra?: GetCommentsExtra) {
+    this.assert(this.chatId, 'getComments');
+    return this.api.getComments(messageId, extra);
+  }
+
+  async getComment(messageId: string, commentId: string) {
+    this.assert(this.chatId, 'getComment');
+    return this.api.getComment(messageId, commentId);
+  }
+
+  async deleteComment(messageId: string, commentId: string) {
+    this.assert(this.chatId, 'deleteComment');
+    return this.api.deleteComment(messageId, commentId);
+  }
 }
 
 const getChatId = (update: Update) => {
@@ -345,7 +360,6 @@ const getContactInfo = (update: Update): ContactInfo | undefined => {
     return attachment.type === 'contact';
   });
   if (!contact?.payload.vcf_info) return undefined;
-  // eslint-disable-next-line new-cap
   const vcf = new vCard().parse(contact.payload.vcf_info);
   return {
     tel: vcf.get('tel').valueOf() as string | undefined,
