@@ -27,14 +27,6 @@ export type GetChatByIdDTO = {
 
 export type GetChatByIdResponse = Chat;
 
-export type GetChatByLinkDTO = {
-  path: {
-    chat_link: string
-  }
-};
-
-export type GetChatByLinkResponse = Chat;
-
 export type EditChatInfoDTO = {
   path: DefaultPath,
   body: {

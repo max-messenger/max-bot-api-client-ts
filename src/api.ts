@@ -57,10 +57,6 @@ export class Api {
     return this.raw.chats.getById({ chat_id: id });
   };
 
-  getChatByLink = async (link: string) => {
-    return this.raw.chats.getByLink({ chat_link: link });
-  };
-
   editChatInfo = async (chatId: number, extra: EditChatExtra) => {
     return this.raw.chats.edit({ chat_id: chatId, ...extra });
   };

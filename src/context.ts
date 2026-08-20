@@ -206,10 +206,6 @@ export class Context<U extends Update = Update> {
     return this.api.getChat(this.chatId);
   }
 
-  async getChatByLink(link: string) {
-    return this.api.getChatByLink(link);
-  }
-
   async editChatInfo(extra: EditChatExtra) {
     this.assert(this.chatId, 'editChatInfo');
     return this.api.editChatInfo(this.chatId, extra);
