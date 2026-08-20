@@ -1,9 +1,9 @@
+import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
 
-import { setTimeout } from 'node:timers/promises';
 import type { Api } from '../../api';
 import { MaxError, Update, UpdateType } from './api';
-
+ 
 const debug = createDebug('max:polling');
 
 const BASE_DELAY_MS = 5_000; // ms
