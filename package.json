@@ -41,7 +41,7 @@
     "@types/vcf": "^2.0.7",
     "eslint": "^10.8.1",
     "eslint-plugin-import-x": "^4.0.0",
-    "globals": "^15.15.0",
+    "globals": "^17.11.0",
     "nodemon": "^3.1.14",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.24.1"
