@@ -143,6 +143,19 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     }
   };
 
+  public webhookCallback(options: WebhookLaunchOptions) {
+    const { allowedUpdates, ...rest } = options
+
+    this.webhook ??= new Webhook(
+      this.api,
+      allowedUpdates,
+      this.token,
+      rest
+    );
+
+    return this.webhook.createCallback(this.handleUpdate);
+  }
+
   startWebhook = async (options: WebhookLaunchOptions) => {
     if (this.webhookIsStarted) {
       debug('Webhook already running');
@@ -156,7 +169,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
     const { allowedUpdates, ...rest } = options
 
-    this.webhook = new Webhook(this.api, allowedUpdates, this.token, rest);
+    this.webhook ??= new Webhook(this.api, allowedUpdates, this.token, rest);
     await this.webhook.start(this.handleUpdate)
 
     this.webhookIsStarted = true;

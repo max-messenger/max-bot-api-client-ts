@@ -277,7 +277,7 @@ export class Api {
 
   subscribe = async (
     url: string,
-    secret: string,
+    secret?: string,
     update_types?: UpdateType[]
   ) => {
     return this.raw.subscriptions.subscribe({ url, secret, update_types });

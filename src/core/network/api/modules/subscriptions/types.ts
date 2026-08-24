@@ -18,7 +18,7 @@ export type SubscribeOnUpdatesDTO = {
   body: {
     url: string;
     update_types?: UpdateType[]
-    secret: string
+    secret?: string
   }
 }
 
