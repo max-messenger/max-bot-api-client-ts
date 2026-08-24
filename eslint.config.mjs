@@ -42,6 +42,8 @@ export default tseslint.config(
       'no-restricted-syntax': 'off',
       'class-methods-use-this': 'off',
       'max-classes-per-file': 'off',
+      'object-curly-spacing': ['error', 'always'],
+      'quotes': ['error', 'single'],
       'no-underscore-dangle': ['error', { 'allowAfterThis': true }],
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',

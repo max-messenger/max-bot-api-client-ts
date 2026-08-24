@@ -261,4 +261,16 @@ export class Api {
       messageId, comment_id,
     });
   };
+
+  registerWebhook = async (
+    url: string,
+    secret: string,
+    update_types?: UpdateType[]
+  ) => {
+    return this.raw.subscriptions.subscribe({ url, secret, update_types });
+  }
+
+  unregisterWebhook = async (url: string) => {
+    return this.raw.subscriptions.unsubscribe({ url });
+  }
 }
