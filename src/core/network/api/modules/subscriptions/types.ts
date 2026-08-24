@@ -1,4 +1,4 @@
-import {ActionResponse, Update, UpdateType} from '../../types';
+import { ActionResponse, Update, UpdateType } from '../../types';
 
 export type GetUpdatesDTO = {
   query: {
@@ -23,6 +23,15 @@ export type SubscribeOnUpdatesDTO = {
 }
 
 export type SubscribeOnUpdatesResponse = ActionResponse
+
+export type SubscriptionsResponseDTO = SubscriptionDTO[]
+
+export type SubscriptionDTO = {
+  url: string;
+  // Unix timestamp в миллисекундах, когда была создана подписка
+  time: number;
+  update_types: UpdateType[];
+}
 
 export type UnsubscribeFromUpdatesDTO = {
   query: {

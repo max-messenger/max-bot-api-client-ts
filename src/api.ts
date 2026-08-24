@@ -1,30 +1,34 @@
-import {
-  AudioAttachment,
-  FileAttachment,
-  ImageAttachment,
-  VideoAttachment,
-} from './core/helpers/attachments';
+import { AudioAttachment, FileAttachment, ImageAttachment, VideoAttachment, } from './core/helpers/attachments';
 import type { MaybeArray } from './core/helpers/types';
 import type {
+  UploadAudioOptions,
   UploadFileOptions,
   UploadImageOptions,
   UploadVideoOptions,
-  UploadAudioOptions, 
 } from './core/helpers/upload';
 import { Upload } from './core/helpers/upload/upload';
 
-import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
-
 import type {
-  AnswerOnCallbackExtra, Client, DeleteMessageExtra,
-  EditMessageExtra, SendMessageExtra, BotCommand,
-  FlattenReq, GetUpdatesDTO, UpdateType,
+  AnswerOnCallbackExtra,
+  BotCommand,
+  Client,
+  DeleteMessageExtra,
+  EditMessageExtra,
+  FlattenReq,
+  GetUpdatesDTO,
+  SendMessageExtra,
+  Subscription,
+  UpdateType,
 } from './core/network/api';
+import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 import type {
-  EditChatExtra, EditCommentExtra,
+  EditChatExtra,
+  EditCommentExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra, GetCommentsExtra,
-  PinMessageExtra, SendCommentExtra,
+  GetChatMembersExtra,
+  GetCommentsExtra,
+  PinMessageExtra,
+  SendCommentExtra,
 } from './core/network/api/modules';
 
 export class Api {
@@ -228,7 +232,8 @@ export class Api {
     commentId: string,
   ) => {
     return this.raw.comments.getById({
-      messageId, commentId,
+      messageId,
+      commentId,
     });
   };
 
@@ -262,7 +267,15 @@ export class Api {
     });
   };
 
-  registerWebhook = async (
+  getSubscriptions = async (): Promise<Subscription[]> => {
+    const subscriptions = await this.raw.subscriptions.getSubscriptions();
+
+    return subscriptions.map<Subscription>(({ update_types, ...rest }) => (
+      { ...rest, updateTypes: update_types }
+    ))
+  }
+
+  subscribe = async (
     url: string,
     secret: string,
     update_types?: UpdateType[]
@@ -270,7 +283,7 @@ export class Api {
     return this.raw.subscriptions.subscribe({ url, secret, update_types });
   }
 
-  unregisterWebhook = async (url: string) => {
+  unsubscribe = async (url: string) => {
     return this.raw.subscriptions.unsubscribe({ url });
   }
 }

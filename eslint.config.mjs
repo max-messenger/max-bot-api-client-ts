@@ -34,6 +34,11 @@ export default tseslint.config(
         'groups': ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }],
+      'sort-imports': ['error', {
+        'ignoreDeclarationSort': true,
+        'ignoreMemberSort': false,
+        'ignoreCase': true
+      }],
       'import-x/extensions': 'off',
       'import-x/prefer-default-export': 'off',
       'no-await-in-loop': 'off',

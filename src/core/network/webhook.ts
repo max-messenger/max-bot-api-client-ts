@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { createServer, IncomingMessage, ServerResponse, Server } from 'node:http';
+import { createServer, IncomingMessage, Server, ServerResponse } from 'node:http';
 import createDebug from 'debug';
 
 import type { Api } from '../../api';
@@ -94,7 +94,7 @@ export class Webhook {
     debug('Registering webhook URL in MAX Platform: %s', this.url);
 
     try {
-      await this.api.registerWebhook(
+      await this.api.subscribe(
         this.url,
         this.secret,
         this.allowedUpdates
@@ -118,7 +118,7 @@ export class Webhook {
     }
 
     try {
-      await this.api.unregisterWebhook(this.url);
+      await this.api.unsubscribe(this.url);
       debug('Webhook removed from MAX');
     } catch (error) {
       debug('Failed to delete webhook from MAX: %O', error);

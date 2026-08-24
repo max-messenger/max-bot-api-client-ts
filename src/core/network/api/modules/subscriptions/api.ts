@@ -6,10 +6,13 @@ export class SubscriptionsApi extends BaseApi {
   getUpdates = async ({ signal, ...query }: FlattenReq<GetUpdatesDTO>) => {
     return this._get('updates', { query, signal });
   };
+  getSubscriptions  = async () => {
+    return this._get('subscriptions', {})
+  };
   subscribe = async ({ signal, ...body }: FlattenReq<SubscribeOnUpdatesDTO>) => {
     return this._post('subscriptions', { signal, body })
-  }
+  };
   unsubscribe = async ({ signal, ...query }: FlattenReq<UnsubscribeFromUpdatesDTO>) => {
     return this._delete('subscriptions', { signal, query })
-  }
+  };
 } 
