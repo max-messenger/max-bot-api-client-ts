@@ -170,7 +170,13 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     const { allowedUpdates, ...rest } = options
 
     this.webhook ??= new Webhook(this.api, allowedUpdates, this.token, rest);
-    await this.webhook.start(this.handleUpdate)
+
+    try {
+      await this.webhook.start(this.handleUpdate)
+    } catch (error) {
+      console.error('Unhandled error on webhook startup \n\r', error);
+      throw error;
+    }
 
     this.webhookIsStarted = true;
 
