@@ -2,6 +2,7 @@ export { Api } from './api';
 export { Bot } from './bot';
 export { Composer } from './composer';
 export { Context } from './context';
+export { Webhook, type WebhookOptions } from './core/network/webhook';
 export type { FilteredContext } from './context';
 
 export type {

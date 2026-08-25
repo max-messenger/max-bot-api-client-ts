@@ -6,28 +6,28 @@ import FormDataStream from 'form-data';
 import { type Api } from '../../../api';
 import {
   StreamUploadClient,
-  type UploadType,
   type StreamUploadEvent,
   type StreamUploadProgressCallback,
+  type UploadType,
 } from '../../network/api';
 import type {
-  FileSource,
-  UploadFile,
-  DefaultOptions,
-  FileUploadResult,
   AudioUploadResult,
-  VideoUploadResult, 
+  DefaultOptions,
+  FileSource,
+  FileUploadResult,
   ImageUploadResult,
+  UploadAudioOptions, 
+  UploadFile,
   UploadFileOptions,
-  UploadVideoOptions,
-  UploadStreamParams,
-  UploadImageOptions,
-  UploadAudioOptions,
-  UploadRequestOptions,
   UploadFromBufferParams,
   UploadFromStreamParams,
-  UploadRangeChunkParams,
+  UploadImageOptions,
   UploadProgressContext,
+  UploadRangeChunkParams,
+  UploadRequestOptions,
+  UploadStreamParams,
+  UploadVideoOptions,
+  VideoUploadResult,
 } from './types';
 
 const DEFAULT_UPLOAD_TIMEOUT = 20_000; // ms
