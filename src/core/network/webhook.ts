@@ -111,6 +111,17 @@ export class Webhook {
     };
   };
 
+  subscribe = async () => {
+    debug('Registering webhook URL in MAX Platform: %s', this.url);
+
+    await this.api.subscribe(
+      this.url,
+      this.secret,
+      this.allowedUpdates
+    );
+    debug('Webhook successfully registered');
+  };
+
   start = async (handleUpdate: (update: Update) => Promise<void>) => {
     debug('Starting standalone HTTP webhook service on port %d', this.port);
 
@@ -120,15 +131,8 @@ export class Webhook {
       debug('Standalone Webhook server is listening on port %d', this.port);
     });
 
-    debug('Registering webhook URL in MAX Platform: %s', this.url);
-
     try {
-      await this.api.subscribe(
-        this.url,
-        this.secret,
-        this.allowedUpdates
-      );
-      debug('Webhook successfully registered');
+      await this.subscribe();
     } catch (error) {
       debug('Failed to register webhook in MAX: %O', error);
       void this.stop();

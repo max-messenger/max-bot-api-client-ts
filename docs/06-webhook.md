@@ -72,7 +72,6 @@ bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
 const handleUpdate = bot.webhookCallback({
   domain: 'https://my-bot.example.com',
   secret: 'my-secret',
-  allowedUpdates: ['message_created'],
 });
 
 const server = createServer(handleUpdate);
@@ -85,6 +84,29 @@ server.listen(3000);
 > const url = Webhook.getWebhookUrl('https://my-bot.example.com', '/webhook/my-secret-path');
 > await bot.api.subscribe(url, 'my-secret', ['message_created']);
 > ```
+
+Если вы хотите зарегистрировать webhook в MAX, но не поднимать сервер средствами SDK, используйте `bot.createWebhook(...)`.
+Он отправляет запрос на подписку (так же, как это делает `bot.start({ mode: 'webhook' })`) и возвращает готовый `(req, res)`-колбэк для вашего HTTP-сервера:
+
+```typescript
+import { createServer } from 'node:http';
+import { Bot } from '@maxhub/max-bot-api';
+
+const bot = new Bot(process.env.BOT_TOKEN);
+
+bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
+
+// Регистрируем webhook в MAX и получаем готовый (req, res)-колбэк
+const handleUpdate = await bot.createWebhook({
+  domain: 'https://my-bot.example.com',
+  path: '/webhook/my-secret-path',
+  secret: 'my-secret',
+  allowedUpdates: ['message_created'],
+});
+
+const server = createServer(handleUpdate);
+server.listen(3000);
+```
 
 ## Полезные утилиты
 

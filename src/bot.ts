@@ -154,6 +154,22 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     return this.webhook.createCallback(this.handleUpdate);
   }
 
+  public createWebhook = async (options: WebhookLaunchOptions) => {
+    const { allowedUpdates, ...rest } = options;
+
+    this.webhook ??= new Webhook(this.api, allowedUpdates, this.token, rest);
+
+    try {
+      await Webhook.clearSubscriptions(this.api, this.webhook.url)
+    } catch (error) {
+      debug('Failed to unsubscribe from webhook updates: %O', error);
+    }
+
+    await this.webhook.subscribe();
+
+    return this.webhook.createCallback(this.handleUpdate);
+  };
+
   startWebhook = async (options: WebhookLaunchOptions) => {
     if (this.webhookIsStarted) {
       debug('Webhook already running');
