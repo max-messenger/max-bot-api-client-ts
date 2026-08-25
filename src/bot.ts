@@ -144,13 +144,11 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   };
 
   public webhookCallback(options: WebhookLaunchOptions) {
-    const { allowedUpdates, ...rest } = options
-
     this.webhook ??= new Webhook(
       this.api,
-      allowedUpdates,
+      undefined,
       this.token,
-      rest
+      options,
     );
 
     return this.webhook.createCallback(this.handleUpdate);

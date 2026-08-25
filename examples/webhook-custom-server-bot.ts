@@ -20,7 +20,6 @@ const handleUpdate = bot.webhookCallback({
   domain,
   path,
   secret,
-  allowedUpdates: ['message_created'],
 });
 
 createServer(handleUpdate).listen(3000, async () => {
