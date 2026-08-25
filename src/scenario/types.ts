@@ -1,7 +1,7 @@
-import type { MaybePromise } from '../core/types';
 import type { Context } from '../core/context';
+import type { MaybePromise } from '../core/types';
 
-/** Сериализуемый прогресс сценария, который хранится в session. */
+/** Состояние сценария, сохраняемое в session. */
 export interface ScenarioState<
   Data extends object = Record<string, unknown>,
   Step extends string = string,
@@ -45,7 +45,7 @@ export interface ScenarioDefinition<
   initialStep: Step;
   idleTimeoutMs?: number;
   createData?: (ctx: C) => MaybePromise<Data>;
-  /** Обрабатывает update, общие для всех шагов, например отмену. */
+  /** Обрабатывает события, общие для всех шагов, например команду отмены. */
   intercept?: (
     input: ScenarioStepInput<C, Data, Step>,
   ) => MaybePromise<ScenarioTransition<Data, Step> | undefined>;
@@ -74,6 +74,6 @@ export interface ScenarioContext extends Context {
 }
 
 export interface ScenarioEngineOptions {
-  /** Подменяемые часы для тестов и специальных окружений. */
+  /** Возвращает текущее время; в тестах функцию можно заменить. */
   now?: () => number;
 }

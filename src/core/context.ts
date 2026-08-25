@@ -1,5 +1,5 @@
 import vCard from 'vcf';
-import type { Guard, Guarded, MaybeArray } from './types';
+import { type Api } from '../api';
 import type {
   AnswerOnCallbackExtra, BotInfo, BotStartedUpdate, Chat,
   EditMessageExtra, FilteredUpdate, GetMessagesExtra, Message,
@@ -7,7 +7,6 @@ import type {
   Update, UpdateType, User,
 } from './network/api';
 
-import { type Api } from '../api';
 import {
   EditChatExtra,
   GetAllChatsExtra,
@@ -15,6 +14,7 @@ import {
   GetCommentsExtra,
   PinMessageExtra,
 } from './network/api/modules';
+import type { Guard, Guarded, MaybeArray } from './types';
 
 export type FilteredContext<
   Ctx extends Context<any>,

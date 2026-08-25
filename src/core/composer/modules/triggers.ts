@@ -1,8 +1,8 @@
-import type { MaybeArray } from '../../types';
-import type { Message } from '../../network/api';
 import type { Context } from '../../context';
+import type { Message } from '../../network/api';
+import type { MaybeArray } from '../../types';
 
-/** Триггер с доступом к Context; найденное совпадение сохраняется в `ctx.match`. */
+/** Функция-триггер получает Context, а найденное совпадение попадает в `ctx.match`. */
 export type TriggerFn<Ctx extends Context> = (
   value: string,
   ctx: Ctx,
@@ -17,14 +17,13 @@ const normalizeTrigger = <Ctx extends Context>(
   if (typeof trigger === 'function') return trigger;
   if (trigger instanceof RegExp) {
     return (value: string = '') => {
-      // RegExp с флагами g/y сохраняет lastIndex, поэтому сбрасываем его перед проверкой.
-      // eslint-disable-next-line no-param-reassign
+      // Регулярные выражения с флагами g/y сохраняют позицию предыдущего совпадения.
       trigger.lastIndex = 0;
       return trigger.exec(value.trim());
     };
   }
 
-  // Строка означает точное значение, а не исходный код регулярного выражения.
+  // Строковый триггер совпадает только со всей строкой и не трактуется как RegExp.
   const regex = new RegExp(`^${escapeRegExp(trigger)}$`);
   return (value: string) => regex.exec(value.trim());
 };

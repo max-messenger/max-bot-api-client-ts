@@ -28,7 +28,7 @@ type BotContext = Context & {
 };
 
 const saveRegistration = async (name: string) => {
-  // Здесь должна быть идемпотентная запись в базу приложения.
+  // Повторный вызов этой функции не должен создавать вторую запись в базе приложения.
   void name;
 };
 
@@ -58,7 +58,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       }
       if (data.name === undefined) throw new Error('Registration name is missing');
 
-      // При ошибке сценарий останется на confirm, и сохранение можно будет повторить.
+      // При ошибке сценарий останется на шаге confirm, чтобы сохранение можно было повторить.
       await saveRegistration(data.name);
       await ctx.reply(`Приятно познакомиться, ${data.name}!`);
       return transition.complete();
@@ -70,7 +70,7 @@ const bot = new Bot<BotContext>(token);
 const scenarios = new ScenarioEngine<BotContext>();
 scenarios.register(registration);
 
-// Между controller и interceptor подключаются команды, доступные на любом шаге.
+// Эти команды обрабатываются до активного сценария и доступны на любом его шаге.
 bot.use(session<BotSession, BotContext>());
 bot.use(scenarios.controllerMiddleware());
 bot.command('cancel', async (ctx, next) => {

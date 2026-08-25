@@ -3,12 +3,12 @@ import createDebug from 'debug';
 import { Api } from './api';
 import { Composer } from './core/composer';
 import { Context } from './core/context';
-import type { MaybePromise } from './core/types';
 
 import {
   BotInfo, ClientOptions, createClient, Update, UpdateType,
 } from './core/network/api';
 import { Polling } from './core/network/polling';
+import type { MaybePromise } from './core/types';
 
 
 const debug = createDebug('max:main');
@@ -53,7 +53,6 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
   private handleError = (err: unknown, ctx: Ctx): MaybePromise<void> => {
     process.exitCode = 1;
-    // eslint-disable-next-line no-console
     console.error('Unhandled error while processing', ctx.update);
     throw err;
   };

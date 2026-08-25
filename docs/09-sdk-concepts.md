@@ -116,10 +116,9 @@ definition, а затем ScenarioEngine запускает текущий ша�
 
 ## Helpers
 
-Attachments и buttons строят wire-модели MAX API. `Keyboard.inlineKeyboard`
-формирует строки, скрывает локально помеченные кнопки и удаляет builder metadata
-перед отправкой. `fmt` формирует Markdown/HTML; пользовательский текст необходимо
-передавать через `escape`/`escapeHtml`.
+Attachments и buttons строят модели запросов MAX API. `Keyboard.inlineKeyboard`
+преобразует готовую сетку кнопок во вложение. `fmt` формирует Markdown/HTML;
+пользовательский текст необходимо передавать через `escape`/`escapeHtml`.
 
 `Upload` получает URL загрузки, нормализует путь/stream/Buffer и отправляет файл
 подходящим для его типа способом. Он не управляет сценарием и возвращает данные,

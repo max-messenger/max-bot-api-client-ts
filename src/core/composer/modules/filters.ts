@@ -6,7 +6,7 @@ import type { Guard } from '../../types';
 
 type UpdateFilter = UpdateType | Guard<Update>;
 
-/** Получает суженный тип update из его имени или type guard. */
+/** Определяет тип события после проверки по имени или type guard. */
 type FilteredBy<Filter> = Filter extends UpdateType
   ? FilteredUpdate<Filter>
   : Filter extends Guard<Update, infer U>
@@ -18,7 +18,7 @@ type UnionToIntersection<Union> = (
 ) extends (value: infer Intersection) => void ? Intersection : never;
 
 const matches = (filter: UpdateFilter, update: Update) => {
-  // Одна проверка используется в обоих комбинаторах; различается только some/every.
+  // Комбинаторы используют одну проверку, но по-разному объединяют её результаты.
   return typeof filter === 'function'
     ? filter(update)
     : update.update_type === filter;
@@ -26,7 +26,7 @@ const matches = (filter: UpdateFilter, update: Update) => {
 
 export const createdMessageBodyHas = <Keys extends Array<keyof MessageBody>>(...keys: Keys) => {
   return (update: Update): update is MessageCreatedUpdate => {
-    // Поле должно существовать и иметь значение: optional-поле с undefined не подходит.
+    // Поле со значением undefined считаем отсутствующим.
     if (update.update_type !== 'message_created') return false;
     for (const key of keys) {
       if (!(key in update.message.body)) return false;

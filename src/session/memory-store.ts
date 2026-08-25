@@ -1,6 +1,6 @@
 import type { SyncSessionStore } from './types';
 
-// Клонирование не позволяет изменить сохранённый объект в обход явного set().
+// Возвращаем копии, чтобы состояние менялось только через `set()`.
 const clone = <T>(value: T): T => structuredClone(value);
 
 /**
@@ -25,7 +25,7 @@ export class MemorySessionStore<T> implements SyncSessionStore<T> {
   set(key: string, value: T): void {
     this.entries.set(key, {
       value: clone(value),
-      // Каждая запись продлевает срок хранения, поэтому timeout считается от активности.
+      // При каждом сохранении заново отсчитываем срок хранения сессии.
       expiresAt: Date.now() + this.timeToLive,
     });
   }

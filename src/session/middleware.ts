@@ -1,17 +1,17 @@
-import { KeyedExecutor } from '../core/keyed-executor';
 import type { Context } from '../core/context';
+import { KeyedExecutor } from '../core/keyed-executor';
 import type { MiddlewareFn } from '../core/middleware';
 import { MemorySessionStore } from './memory-store';
 import type { SessionOptions, SessionProperty } from './types';
 
-/** Добавляет в Context состояние пользователя и чата между update. */
+/** Добавляет в Context состояние пользователя и чата между событиями. */
 export function session<
   S extends object & NonNullable<C[P]>,
   C extends Context & { [key in P]?: C[P] },
   P extends SessionProperty<C> = 'session',
 >(options: SessionOptions<S, C, P> = {}): MiddlewareFn<C> {
   const property = options.property ?? ('session' as P);
-  // Пользовательское имя записывается через Reflect.set, поэтому опасные ключи запрещены.
+  // Поле задаётся динамически, поэтому запрещаем имена, способные изменить прототип Context.
   if (['__proto__', 'constructor', 'prototype'].includes(property)) {
     throw new TypeError(`Unsafe session property "${property}"`);
   }
@@ -23,12 +23,12 @@ export function session<
   return async (ctx, next) => {
     const key = await getSessionKey(ctx);
     if (key == null) {
-      // Update без пользователя или чата проходит дальше без общего фиктивного ключа.
+      // Без ключа сессия недоступна, но остальные обработчики продолжают работу.
       Reflect.set(ctx, property, undefined);
       return next();
     }
 
-    // Внутри процесса update одного ключа выполняются по очереди и не затирают изменения.
+    // Внутри процесса события одной сессии выполняются по очереди и не затирают изменения.
     return executor.run(key, async () => {
       const value = await store.get(key) ?? createSession(ctx);
       Reflect.set(ctx, property, value);
@@ -36,8 +36,7 @@ export function session<
       try {
         return await next();
       } finally {
-        // Изменения session сохраняются и при ошибке следующего обработчика.
-        // Scenario применяет собственный transition только после успешного шага.
+        // Сохраняем изменения session, даже если следующий обработчик завершился с ошибкой.
         const current = Reflect.get(ctx, property) as S | null | undefined;
         if (current == null) {
           await store.delete(key);

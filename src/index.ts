@@ -2,7 +2,7 @@
 export { Api } from './api';
 export { Bot } from './bot';
 
-// Примитивы обработки одного update.
+// Базовые инструменты обработки событий.
 export { Composer } from './core/composer';
 export { Context } from './core/context';
 export {
@@ -16,7 +16,7 @@ export type {
   Middleware, MiddlewareFn, MiddlewareList, MiddlewareObj, NextFn,
 } from './core/middleware';
 
-// Состояние пользователя и чата между update.
+// Состояние пользователя и чата между событиями.
 export { MemorySessionStore, session } from './session';
 export type {
   AsyncSessionStore, SessionContext, SessionOptions,

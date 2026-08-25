@@ -1,23 +1,23 @@
-import type { MaybePromise } from '../../types';
 import type { Context } from '../../context';
-import { flatten, passThrough } from './composition';
 import type { Middleware, MiddlewareFn } from '../../middleware';
+import type { MaybePromise } from '../../types';
+import { flatten, passThrough } from './composition';
 
-/** Маршрут может добавить временные значения в `ctx.state` перед обработчиком. */
+/** Результат маршрутизации может дополнить `ctx.state` перед вызовом обработчика. */
 export type DispatchResult<Key extends PropertyKey> =
   Key | { route: Key; state?: Record<string | symbol, unknown> };
 
 const hasOwn = (value: object, key: PropertyKey) => {
-  // Маршрут `toString` не должен выбирать свойство, унаследованное от Object.
+  // Маршрут должен совпадать с явно заданным ключом, а не с унаследованным свойством.
   return Object.prototype.hasOwnProperty.call(value, key);
 };
 
-// Эти ключи могли бы изменить прототип Context при копировании внешних данных.
+// Запрещаем ключи, которые могут изменить прототип Context.
 const unsafeStateKeys = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
- * Выбирает middleware по результату route.
- * Неизвестный или пустой маршрут обрабатывает fallback.
+ * Выбирает обработчик по результату `route`.
+ * Для пустого или неизвестного маршрута вызывает `fallback`.
  */
 export function dispatch<
   C extends Context,

@@ -1,24 +1,24 @@
-/** Последовательно выполняет задачи одного ключа, не блокируя остальные ключи. */
+/** Выполняет задачи с одинаковым ключом по очереди, не блокируя остальные ключи. */
 export class KeyedExecutor {
   private readonly tails = new Map<string, Promise<void>>();
 
   async run<T>(key: string, task: () => Promise<T>): Promise<T> {
     const previous = this.tails.get(key) ?? Promise.resolve();
     let release: () => void = () => undefined;
-    // Этот Promise становится концом очереди и после выполнения отпускает следующую задачу.
+    // Добавляем текущую задачу в конец очереди для этого ключа.
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });
     const tail = previous.then(() => gate);
     this.tails.set(key, tail);
 
-    // Ожидается только предыдущая задача с тем же ключом.
+    // Перед запуском ждём только предыдущую задачу с тем же ключом.
     await previous;
     try {
       return await task();
     } finally {
       release();
-      // Новая задача могла заменить конец очереди, поэтому удаляем только актуальную запись.
+      // Не удаляем очередь, если после нас в неё уже добавили новую задачу.
       if (this.tails.get(key) === tail) this.tails.delete(key);
     }
   }

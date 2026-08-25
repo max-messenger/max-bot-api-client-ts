@@ -68,15 +68,11 @@ interface Order {
   delivery: Delivery;
 }
 
-// Эти Map изображают базу только в примере; рабочему боту нужно постоянное хранилище.
+// В примере Map заменяют базу данных; в рабочем боте нужно постоянное хранилище.
 const profiles = new Map<string, Profile>();
 const orders = new Map<string, Order>();
 
 const userKey = (ctx: BotContext) => `${ctx.user?.user_id ?? 'unknown'}:${ctx.chatId ?? 'unknown'}`;
-
-const keyboard = (buttons: ReturnType<typeof Keyboard.button.callback>[], columns = 2) => {
-  return [Keyboard.inlineKeyboard(buttons, { columns })];
-};
 
 const formatMoney = (value: number) => `${value} ₽`;
 
@@ -98,10 +94,10 @@ const cartReplyExtra = (items: CartLine[]) => {
   if (items.length === 0) return { format: 'html' as const };
   return {
     format: 'html' as const,
-    attachments: keyboard([
-      Keyboard.button.callback('Оформить заказ', 'checkout:start'),
-      Keyboard.button.callback('Очистить', 'cart:clear'),
-    ], 1),
+    attachments: [Keyboard.inlineKeyboard([
+      [Keyboard.button.callback('Оформить заказ', 'checkout:start')],
+      [Keyboard.button.callback('Очистить', 'cart:clear')],
+    ])],
   };
 };
 
@@ -193,10 +189,10 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       const nextData = { ...data, location };
       await ctx.reply(registrationSummary(nextData), {
         format: 'html',
-        attachments: keyboard([
+        attachments: [Keyboard.inlineKeyboard([[
           Keyboard.button.callback('Сохранить', 'registration:confirm'),
           Keyboard.button.callback('Изменить', 'registration:edit'),
-        ]),
+        ]])],
       });
       return transition.goto('confirm', { location });
     },
@@ -240,10 +236,10 @@ interface CheckoutData {
 
 type CheckoutStep = 'review' | 'select-delivery' | 'confirm';
 
-const deliveryKeyboard = () => keyboard([
+const deliveryKeyboard = () => [Keyboard.inlineKeyboard([[
   Keyboard.button.callback('Самовывоз', 'checkout:delivery:pickup'),
   Keyboard.button.callback('Курьер', 'checkout:delivery:courier'),
-]);
+]])];
 
 const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
   id: 'checkout',
@@ -283,10 +279,10 @@ const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
         `Сумма: ${fmt.boldHtml(formatMoney(data.total))}`,
       ].join('\n'), {
         format: 'html',
-        attachments: keyboard([
+        attachments: [Keyboard.inlineKeyboard([[
           Keyboard.button.callback('Оформить', 'checkout:confirm'),
           Keyboard.button.callback('Назад', 'checkout:back'),
-        ]),
+        ]])],
       });
       return transition.goto('confirm', { delivery });
     },
@@ -303,13 +299,13 @@ const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
       }
       if (data.delivery === undefined) throw new Error('Delivery method is missing');
 
-      // Флаг показывает повтор: после ошибки сценарий не завершится.
+      // После ошибки флаг останется в session, поэтому следующий вызов будет повторным.
       if (ctx.session.failNextOrderSave) {
         ctx.session.failNextOrderSave = false;
         throw new Error('Simulated order repository failure');
       }
 
-      // Стабильный orderId не даёт создать второй заказ при повторной обработке update.
+      // Повторное сохранение с тем же orderId не должно создавать второй заказ.
       if (!orders.has(data.orderId)) {
         orders.set(data.orderId, {
           id: data.orderId,
@@ -332,7 +328,7 @@ const scenarios = new ScenarioEngine<BotContext>();
 scenarios.register(registration).register(checkout);
 
 bot.catch(async (error, ctx) => {
-  // В примере polling продолжает работу, чтобы пользователь мог повторить текущий шаг.
+  // После ошибки бот продолжает работу, а пользователь может повторить текущий шаг.
   // eslint-disable-next-line no-console
   console.error(`[${String(ctx.state.requestId)}]`, error);
   if (ctx.callback !== undefined) {
@@ -341,7 +337,7 @@ bot.catch(async (error, ctx) => {
   await ctx.reply('Операция не выполнена. Состояние сохранено — повторите действие или /cancel.');
 });
 
-// state живёт один update, session — между update с одинаковым ключом пользователя и чата.
+// ctx.state доступен только при обработке текущего события, ctx.session — между событиями.
 bot.use(async (ctx, next) => {
   ctx.state.requestId = randomUUID();
   await next();
@@ -390,7 +386,7 @@ const help = [
 
 const welcome = 'Привет! Здесь можно проверить регистрацию и оформление заказа. Справка: /help';
 
-// Эти команды доступны, даже когда остальные update перехватывает активный сценарий.
+// Эти команды обрабатываются до активного сценария и поэтому доступны на любом шаге.
 bot.on('bot_started', (ctx) => ctx.reply(welcome));
 bot.command('start', (ctx) => ctx.reply(welcome));
 bot.command('help', (ctx) => ctx.reply(help, { format: 'html' }));
@@ -433,18 +429,22 @@ bot.command('orders', async (ctx) => {
   await ctx.reply([fmt.boldHtml('Заказы'), ...lines].join('\n'), { format: 'html' });
 });
 
-// После этой точки активный сценарий забирает все неглобальные update.
+// После этой точки остальные события получает активный сценарий.
 bot.use(scenarios.interceptMiddleware());
 
 bot.command('register', scenarios.start(registration));
 bot.command('catalog', async (ctx) => {
   await ctx.reply('Добавьте товары в корзину:', {
-    attachments: keyboard([
-      Keyboard.button.callback('Кофе · 250 ₽', 'cart:add:coffee'),
-      Keyboard.button.callback('Чай · 180 ₽', 'cart:add:tea'),
-      Keyboard.button.callback('Чизкейк · 320 ₽', 'cart:add:cake'),
-      Keyboard.button.callback('Показать корзину', 'cart:show'),
-    ]),
+    attachments: [Keyboard.inlineKeyboard([
+      [
+        Keyboard.button.callback('Кофе · 250 ₽', 'cart:add:coffee'),
+        Keyboard.button.callback('Чай · 180 ₽', 'cart:add:tea'),
+      ],
+      [
+        Keyboard.button.callback('Чизкейк · 320 ₽', 'cart:add:cake'),
+        Keyboard.button.callback('Показать корзину', 'cart:show'),
+      ],
+    ])],
   });
 });
 bot.action(/^cart:add:(coffee|tea|cake)$/, async (ctx) => {
@@ -475,7 +475,7 @@ bot.command('checkout', scenarios.start(checkout));
 bot.on('message_created', (ctx) => ctx.reply('Команда не распознана. Используйте /help.'));
 
 const run = async () => {
-  // MAX показывает этот список как подсказку при вводе `/`.
+  // MAX показывает команды как подсказки при вводе `/`.
   await bot.api.setMyCommands(commands);
   await bot.start({
     allowedUpdates: ['bot_started', 'message_created', 'message_callback'],
@@ -483,7 +483,7 @@ const run = async () => {
 };
 
 run().catch((error: unknown) => {
-  // Ошибки запуска возникают вне обработки update и не попадают в bot.catch().
+  // Ошибки запуска возникают до обработки событий и не попадают в bot.catch().
   // eslint-disable-next-line no-console
   console.error('Failed to start showcase bot', error);
   process.exitCode = 1;

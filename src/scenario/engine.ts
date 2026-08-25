@@ -10,7 +10,8 @@ import type {
   ScenarioTransition,
 } from './types';
 
-// Реестр хранит сценарии с разными типами данных и шагов; типы стираются только внутри движка.
+// В одном реестре находятся сценарии с разными данными и шагами.
+// Приведение к общим типам используется только внутри ScenarioEngine.
 type StoredDefinition<C extends Context> = ScenarioDefinition<C, object, string>;
 
 const hasStep = <C extends Context>(definition: StoredDefinition<C>, step: string) => {
@@ -18,7 +19,7 @@ const hasStep = <C extends Context>(definition: StoredDefinition<C>, step: strin
 };
 
 export const defineScenario = <C extends Context, Data extends object>() => {
-  // Два вызова позволяют отдельно задать Context/Data и точное объединение имён шагов.
+  // Раздельные вызовы позволяют задать Context и Data, сохранив точный список имён шагов.
   return <Step extends string>(definition: ScenarioDefinition<C, Data, Step>) => definition;
 };
 
@@ -27,7 +28,7 @@ export const transition = {
   stay<Data extends object>(
     data?: Partial<Data>,
   ): Extract<ScenarioTransition<Data, string>, { type: 'stay' }> {
-    // При exactOptionalPropertyTypes поле нужно пропустить, а не записать в него undefined.
+    // При exactOptionalPropertyTypes необязательное поле нельзя заполнять значением undefined.
     return data === undefined ? { type: 'stay' } : { type: 'stay', data };
   },
   goto<Step extends string, Data extends object = Record<string, never>>(
@@ -64,7 +65,7 @@ export class ScenarioEngine<
   ) {
     this.validate(definition);
     if (this.definitions.has(definition.id)) {
-      // Один id всегда указывает на одну definition, иначе сохранённый шаг может исчезнуть.
+      // Повторный id мог бы связать сохранённое состояние с другим сценарием.
       throw new TypeError(`Scenario "${definition.id}" is already registered`);
     }
     this.definitions.set(definition.id, definition as unknown as StoredDefinition<C>);
@@ -79,7 +80,7 @@ export class ScenarioEngine<
     });
   }
 
-  /** Добавляет `ctx.scenario`, но ещё не перехватывает update активного сценария. */
+  /** Добавляет `ctx.scenario`, не передавая событие активному сценарию. */
   controllerMiddleware(): MiddlewareFn<C> {
     return async (ctx, next) => {
       ctx.scenario = this.controller(ctx);
@@ -87,14 +88,14 @@ export class ScenarioEngine<
     };
   }
 
-  /** Передаёт update активному сценарию, а при его отсутствии продолжает цепочку. */
+  /** Передаёт событие активному сценарию, а при его отсутствии продолжает цепочку. */
   interceptMiddleware(): MiddlewareFn<C> {
     return async (ctx, next) => {
       const state = ctx.session?.scenario;
       if (state === undefined) return next();
 
       if (state.expiresAt !== undefined && state.expiresAt <= this.now()) {
-        // Просроченный сценарий удаляется, а текущий update проходит дальше по цепочке.
+        // Просроченный сценарий удаляем, а текущее событие передаём следующим обработчикам.
         delete ctx.session?.scenario;
         return next();
       }
@@ -104,7 +105,7 @@ export class ScenarioEngine<
     };
   }
 
-  /** Создаёт middleware, которое запускает переданную definition. */
+  /** Создаёт обработчик для запуска переданного сценария. */
   start<Data extends object, Step extends string>(
     definition: ScenarioDefinition<C, Data, Step>,
     createData?: (ctx: C) => Data | Promise<Data>,
@@ -143,7 +144,7 @@ export class ScenarioEngine<
         if (initialData === undefined) {
           throw new TypeError(`Scenario "${definition.id}" requires initial data`);
         }
-        // Начальное состояние сохраняется до запуска, чтобы первый шаг можно было повторить.
+        // Сохраняем начальное состояние до выполнения, чтобы первый шаг можно было повторить.
         session.scenario = {
           id: definition.id,
           step: definition.initialStep,
@@ -175,14 +176,14 @@ export class ScenarioEngine<
     }
     const step = definition.steps[state.step];
 
-    // Шаг получает копию: сохранённые данные меняются только через возвращённый transition.
+    // Шаг получает копию состояния и меняет сохранённые данные только через результат перехода.
     const snapshot = structuredClone(state);
     const input: ScenarioStepInput<C, object, string> = {
       ctx,
       state: Object.freeze(snapshot),
       data: Object.freeze(snapshot.data),
     };
-    // Intercept может обработать update; undefined передаёт его текущему шагу.
+    // Если `intercept` не обработал событие, его получает текущий шаг.
     const result = await definition.intercept?.(input) ?? await step(input);
     this.apply(session, definition, state, result);
   }
@@ -213,7 +214,7 @@ export class ScenarioEngine<
       id: state.id,
       step: nextStep,
       data: { ...state.data, ...(result.data ?? {}) },
-      // Успешный stay/goto продлевает timeout неактивности.
+      // Успешный `stay` или `goto` заново запускает отсчёт времени неактивности.
       expiresAt: this.deadline(definition),
     };
   }

@@ -1,8 +1,8 @@
-import type { MaybePromise } from '../../types';
 import type { Context } from '../../context';
 import type {
   Middleware, MiddlewareFn, MiddlewareList, NextFn,
 } from '../../middleware';
+import type { MaybePromise } from '../../types';
 
 export type Predicate<T> = (value: T) => MaybePromise<boolean>;
 
@@ -11,8 +11,8 @@ export type AsyncPredicate<T> = (value: T) => Promise<boolean>;
 const noop = () => Promise.resolve();
 
 export const flatten = <C extends Context>(middleware: Middleware<C>): MiddlewareFn<C> => {
-  // Объект запрашивается на каждом update, поэтому его обработчик можно менять
-  // после сборки цепочки.
+  // Для объекта вызываем middleware() при каждом событии, чтобы учитывать
+  // изменения, сделанные после сборки цепочки.
   return typeof middleware === 'function'
     ? middleware
     : (ctx, next) => middleware.middleware()(ctx, next);
@@ -25,7 +25,7 @@ export const concat = <C extends Context>(
   return async (ctx, next) => {
     let nextCalled = false;
     await first(ctx, async () => {
-      // Повторный next запустил бы следующие обработчики и их побочные эффекты ещё раз.
+      // Повторный `next()` ещё раз запустил бы следующие обработчики.
       if (nextCalled) throw new Error('`next` already called before!');
       nextCalled = true;
       await andThen(ctx, next);
@@ -45,38 +45,38 @@ export const compose = <C extends Context>(
   return middlewares.map(flatten).reduce(concat);
 };
 
-/** Параллельно выполняет отдельную ветку и `next()`, ожидая завершения обеих. */
+/** Одновременно запускает переданный обработчик и оставшуюся цепочку. */
 export const fork = <C extends Context>(middleware: Middleware<C>): MiddlewareFn<C> => {
   const handler = flatten(middleware);
   return async (ctx, next) => {
-    // Обе ветки ожидаются: фоновая работа могла бы пережить ctx/session и обойти обработку ошибок.
+    // Если одна из веток завершится с ошибкой, fork также завершится с ошибкой.
     await Promise.all([handler(ctx, noop), next()]);
   };
 };
 
-/** Выполняет побочную ветку до `next()` и не даёт ей продолжить основную цепочку. */
+/** Выполняет дополнительное действие перед переходом к `next()`. */
 export const tap = <C extends Context>(middleware: Middleware<C>): MiddlewareFn<C> => {
   const handler = flatten(middleware);
   return async (ctx, next) => {
-    // Побочная ветка получает закрытый next и не может повторно запустить основную цепочку.
+    // Переданный обработчик получает `next()` без продолжения и не запускает основную цепочку.
     await handler(ctx, noop);
     await next();
   };
 };
 
-/** Получает middleware из factory отдельно для каждого обрабатываемого Context. */
+/** Вызывает `factory` для каждого события и выполняет возвращённый обработчик. */
 export const lazy = <C extends Context>(
   factory: (ctx: C) => MaybePromise<Middleware<C>>,
 ): MiddlewareFn<C> => {
   if (typeof factory !== 'function') throw new TypeError('Factory must be a function');
   return async (ctx, next) => {
-    // Middleware выбирается для каждого update и может зависеть от session, прав и других данных.
+    // Выбор может зависеть от сессии, прав пользователя и других данных Context.
     const middleware = await factory(ctx);
     return flatten(middleware)(ctx, next);
   };
 };
 
-/** Передаёт ошибку из обёрнутой цепочки пользовательскому обработчику. */
+/** Передаёт ошибку из указанной цепочки в `errorHandler`. */
 export const catchMiddleware = <C extends Context>(
   errorHandler: (error: unknown, ctx: C) => MaybePromise<void>,
   ...middlewares: MiddlewareList<C>
@@ -86,13 +86,13 @@ export const catchMiddleware = <C extends Context>(
     try {
       await handler(ctx, next);
     } catch (error) {
-      // Ошибка самого errorHandler передаётся обработчику Bot, а не скрывается здесь.
+      // Если errorHandler выбросит новую ошибку, она будет передана вызывающему коду.
       await errorHandler(error, ctx);
     }
   };
 };
 
-/** Выбирает и выполняет одну из двух веток по синхронному или асинхронному условию. */
+/** Выполняет одну из двух веток по синхронному или асинхронному условию. */
 export const branch = <C extends Context>(
   predicate: boolean | Predicate<C>,
   onTrue: Middleware<C>,
@@ -106,13 +106,13 @@ export const branch = <C extends Context>(
   });
 };
 
-/** Выполняет переданную цепочку при true и вызывает `next()` при false. */
+/** Выполняет переданную цепочку при true и сразу вызывает `next()` при false. */
 export const optional = <C extends Context>(
   predicate: Predicate<C>,
   ...middlewares: MiddlewareList<C>
 ): MiddlewareFn<C> => branch(predicate, compose(middlewares), passThrough<C>());
 
-/** Завершает обработку update при true и вызывает `next()` при false. */
+/** Прекращает обработку события при true и вызывает `next()` при false. */
 export const drop = <C extends Context>(predicate: Predicate<C>): MiddlewareFn<C> => {
   return branch(predicate, noop, passThrough<C>());
 };

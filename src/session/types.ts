@@ -1,5 +1,5 @@
-import type { MaybePromise } from '../core/types';
 import type { Context } from '../core/context';
+import type { MaybePromise } from '../core/types';
 
 export interface SyncSessionStore<T> {
   get(key: string): T | undefined;
@@ -20,7 +20,7 @@ type ExclusiveKeys<A, B> = keyof Omit<A, keyof B>;
 export interface SessionOptions<S, C extends Context, P extends string> {
   /** Поле Context для состояния. По умолчанию — `session`. */
   property?: P;
-  /** По умолчанию — `<user_id>:<chat_id>`; null или undefined отключают session. */
+  /** По умолчанию — `<user_id>:<chat_id>`; без ключа session для события не создаётся. */
   getSessionKey?: (ctx: C) => MaybePromise<string | null | undefined>;
   /**
    * По умолчанию данные хранятся в памяти и теряются при остановке процесса.
