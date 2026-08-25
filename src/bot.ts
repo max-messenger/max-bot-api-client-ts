@@ -166,6 +166,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       debug('Webhook start aborted: long polling already running');
       return;
     }
+    debug(`Starting @${this.botInfo?.username} via Webhook`);
 
     const { allowedUpdates, ...rest } = options
 
@@ -185,8 +186,6 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     }
 
     this.webhookIsStarted = true;
-
-    debug(`Starting @${this.botInfo?.username} via Webhook`);
   };
 
   stopPolling = () => {

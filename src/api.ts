@@ -268,9 +268,9 @@ export class Api {
   };
 
   getSubscriptions = async (): Promise<Subscription[]> => {
-    const subscriptions = await this.raw.subscriptions.getSubscriptions();
+    const response = await this.raw.subscriptions.getSubscriptions();
 
-    return subscriptions.map<Subscription>(({ update_types, ...rest }) => (
+    return response.subscriptions?.map<Subscription>(({ update_types, ...rest }) => (
       { ...rest, updateTypes: update_types }
     ))
   }

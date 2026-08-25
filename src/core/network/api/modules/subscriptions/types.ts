@@ -24,7 +24,9 @@ export type SubscribeOnUpdatesDTO = {
 
 export type SubscribeOnUpdatesResponse = ActionResponse
 
-export type SubscriptionsResponseDTO = SubscriptionDTO[]
+export type SubscriptionsResponseDTO = {
+  subscriptions: SubscriptionDTO[]
+}
 
 export type SubscriptionDTO = {
   url: string;

@@ -8,7 +8,9 @@ if (!domain) throw new Error('Domain not provided');
 
 const bot = new Bot(token);
 
-bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text ?? 'New message'));
+bot.on('message_created', (ctx) =>
+  ctx.reply(ctx.message.body.text ?? 'New message')
+);
 
 bot.start({
   mode: 'webhook',
