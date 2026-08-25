@@ -40,9 +40,9 @@ export class Webhook {
 
     this.secret = options.secret;
 
-    this.hookPath = options.path ?? `/webhook/${this.generateTokenRelatedHash(token)}`;
+    this.hookPath = options.path ?? `/webhook/${Webhook.generateTokenRelatedHash(token)}`;
 
-    this.url = this.getWebhookUrl(options.domain);
+    this.url = Webhook.getWebhookUrl(options.domain, this.hookPath);
   }
 
   public static clearSubscriptions = async (api: Api, activeUrl?: string) => {
@@ -56,6 +56,18 @@ export class Webhook {
         return api.unsubscribe(subscription.url);
       }))
   }
+
+  public static getWebhookUrl = (domain: string, path: string) => {
+    const hasProtocol = /^https?:\/\//i.test(domain);
+    const urlString = hasProtocol ? domain : `https://${domain}`;
+    const preparedDomain = new URL(urlString).host;
+
+    return `https://${preparedDomain}${path}`;
+  }
+
+  public static generateTokenRelatedHash = (token: string) => createHash('sha256')
+    .update(token)
+    .digest('hex');
 
   createCallback = (handleUpdate: (update: Update) => Promise<void>) => {
     return (req: IncomingMessage, res: ServerResponse) => {
@@ -151,16 +163,4 @@ export class Webhook {
     if (a.length !== b.length) return false;
     return timingSafeEqual(a, b);
   }
-
-  private getWebhookUrl = (domain: string) => {
-    const hasProtocol = /^https?:\/\//i.test(domain);
-    const urlString = hasProtocol ? domain : `https://${domain}`;
-    const preparedDomain = new URL(urlString).host;
-
-    return `https://${preparedDomain}${this.hookPath}`
-  }
-
-  private generateTokenRelatedHash = (token: string) => createHash('sha256')
-    .update(token)
-    .digest('hex');
 }
