@@ -178,6 +178,12 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
       throw error;
     }
 
+    try {
+      await Webhook.clearSubscriptions(this.api, this.webhook.url)
+    } catch (error) {
+      debug('Failed to unsubscribe from webhook updates: %O', error);
+    }
+
     this.webhookIsStarted = true;
 
     debug(`Starting @${this.botInfo?.username} via Webhook`);

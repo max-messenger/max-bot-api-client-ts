@@ -23,7 +23,7 @@ export type WebhookOptions = {
 }
 
 export class Webhook {
-  public readonly url: string; // Публичное свойство, чтобы юзер мог видеть полный URL подписки
+  public readonly url: string;
 
   private server: Server | null = null;
   private readonly port: number;
@@ -45,7 +45,19 @@ export class Webhook {
     this.url = this.getWebhookUrl(options.domain);
   }
 
-  public createCallback = (handleUpdate: (update: Update) => Promise<void>) => {
+  public static clearSubscriptions = async (api: Api, activeUrl?: string) => {
+    const subscriptions = await api.getSubscriptions();
+
+    return Promise.all(
+      subscriptions.map((subscription) => {
+        if (subscription.url === activeUrl) {
+          return Promise.resolve();
+        }
+        return api.unsubscribe(subscription.url);
+      }))
+  }
+
+  createCallback = (handleUpdate: (update: Update) => Promise<void>) => {
     return (req: IncomingMessage, res: ServerResponse) => {
       const botApiSecretHeader = req.headers[BOT_API_SECRET_HEADER];
 
