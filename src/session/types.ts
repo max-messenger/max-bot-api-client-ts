@@ -1,5 +1,5 @@
 import type { MaybePromise } from '../core/types';
-import type { Context } from '../framework/context';
+import type { Context } from '../core/context';
 
 export interface SyncSessionStore<T> {
   get(key: string): T | undefined;
@@ -18,16 +18,16 @@ export type SessionStore<T> = SyncSessionStore<T> | AsyncSessionStore<T>;
 type ExclusiveKeys<A, B> = keyof Omit<A, keyof B>;
 
 export interface SessionOptions<S, C extends Context, P extends string> {
-  /** Context property used for the session. Defaults to `session`. */
+  /** Поле Context для состояния. По умолчанию — `session`. */
   property?: P;
-  /** Defaults to `<user_id>:<chat_id>`. Nullish keys disable the session. */
+  /** По умолчанию — `<user_id>:<chat_id>`; null или undefined отключают session. */
   getSessionKey?: (ctx: C) => MaybePromise<string | null | undefined>;
   /**
-   * Defaults to process-local memory storage, which loses all sessions when
-   * the process stops. Use an external store for durable state.
+   * По умолчанию данные хранятся в памяти и теряются при остановке процесса.
+   * Для сохраняемого состояния подключите внешнее хранилище.
    */
   store?: SessionStore<S>;
-  /** Creates the value when the store has no session for the key. */
+  /** Создаёт состояние для нового ключа. По умолчанию возвращает пустой объект. */
   defaultSession?: (ctx: C) => S;
 }
 

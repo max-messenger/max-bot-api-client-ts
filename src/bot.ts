@@ -1,8 +1,8 @@
 import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
 import { Api } from './api';
-import { Composer } from './framework/composer';
-import { Context } from './framework/context';
+import { Composer } from './core/composer';
+import { Context } from './core/context';
 import type { MaybePromise } from './core/types';
 
 import {

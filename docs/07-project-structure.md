@@ -7,32 +7,32 @@ src/
 ├── index.ts          # публичный API пакета
 ├── bot.ts            # запуск и обработка update
 ├── api.ts            # высокоуровневые методы MAX API
-├── framework/        # Context, Composer, middleware и фильтры
+├── core/             # Context, Composer, middleware, HTTP API и polling
+│   └── composer/     # Composer и внутренние модули сборки цепочек
 ├── session/          # session middleware и хранилища
-├── conversation/     # именованные диалоги поверх session
-├── helpers/          # вложения, кнопки, клавиатуры, форматирование, upload
-└── core/             # внутренние типы, HTTP API и polling
+├── scenario/         # именованные пошаговые сценарии поверх session
+└── helpers/          # вложения, кнопки, клавиатуры, форматирование, upload
 ```
 
 ## Границы модулей
 
 - `core` не зависит от высокоуровневых модулей;
-- `framework` содержит общую модель обработки одного update;
-- `session` использует framework и хранит произвольное состояние приложения;
-- `conversation` использует framework и сохраняет прогресс внутри session;
+- `core/context.ts` и `core/middleware.ts` содержат модель обработки одного update;
+- `core/composer` собирает middleware и маршрутизирует update;
+- `session` использует core-примитивы и хранит состояние приложения;
+- `scenario` использует core-примитивы и сохраняет прогресс внутри session;
 - `helpers` готовят данные для MAX API и не управляют жизненным циклом бота;
 - `index.ts` остаётся единой публичной точкой входа.
 
-Внутри `framework` публичный `Composer` остаётся фасадом. Чистые алгоритмы
-вынесены в `composition.ts`, маршрутизация — в `dispatch.ts`, нормализация
-команд и текстовых триггеров — в `triggers.ts`. Эти файлы не создают новый
-публичный API и позволяют развивать механизмы отдельно от состояния Composer.
+Публичный `Composer` остаётся фасадом. Его внутренние алгоритмы находятся в
+`core/composer/modules`: `composition.ts` строит цепочку, `dispatch.ts` выбирает
+маршрут, `triggers.ts` нормализует триггеры, а `filters.ts` проверяет update.
 
 Внутренние перемещения файлов не должны менять пользовательские импорты:
 
 ```typescript
 import {
-  Bot, Composer, ConversationEngine, Keyboard, fmt, session,
+  Bot, Composer, ScenarioEngine, Keyboard, fmt, session,
 } from '@maxhub/max-bot-api';
 ```
 

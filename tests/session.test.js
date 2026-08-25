@@ -20,6 +20,16 @@ test('session persists state between updates', async () => {
   assert.equal(store.get('user').count, 2);
 });
 
+test('session creates an empty object by default', async () => {
+  const store = new MemorySessionStore();
+  const middleware = session({ store, getSessionKey: () => 'user' });
+  const ctx = {};
+
+  await middleware(ctx, async () => { ctx.session.enabled = true; });
+
+  assert.deepEqual(store.get('user'), { enabled: true });
+});
+
 test('session serializes concurrent updates with the same key', async () => {
   const store = new MemorySessionStore();
   const middleware = session({

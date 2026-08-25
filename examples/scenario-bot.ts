@@ -1,12 +1,12 @@
 import {
   Bot,
   Context,
-  ConversationEngine,
-  defineConversation,
+  ScenarioEngine,
+  defineScenario,
   session,
   transition,
-  type ConversationController,
-  type ConversationSession,
+  type ScenarioController,
+  type ScenarioSession,
 } from '@maxhub/max-bot-api';
 
 const token = process.env.BOT_TOKEN;
@@ -16,7 +16,7 @@ interface RegistrationData {
   name?: string;
 }
 
-interface BotSession extends ConversationSession {
+interface BotSession extends ScenarioSession {
   count?: number;
 }
 
@@ -24,15 +24,15 @@ type RegistrationStep = 'ask-name' | 'read-name' | 'confirm';
 
 type BotContext = Context & {
   session: BotSession;
-  conversation: ConversationController<BotContext>;
+  scenario: ScenarioController<BotContext>;
 };
 
 const saveRegistration = async (name: string) => {
-  // Replace with an idempotent write to the application's database.
+  // Здесь должна быть идемпотентная запись в базу приложения.
   void name;
 };
 
-const registration = defineConversation<BotContext, RegistrationData>()<RegistrationStep>({
+const registration = defineScenario<BotContext, RegistrationData>()<RegistrationStep>({
   id: 'registration',
   initialStep: 'ask-name',
   idleTimeoutMs: 5 * 60 * 1000,
@@ -58,7 +58,7 @@ const registration = defineConversation<BotContext, RegistrationData>()<Registra
       }
       if (data.name === undefined) throw new Error('Registration name is missing');
 
-      // If this throws, the conversation remains on the confirm step for retry.
+      // При ошибке сценарий останется на confirm, и сохранение можно будет повторить.
       await saveRegistration(data.name);
       await ctx.reply(`Приятно познакомиться, ${data.name}!`);
       return transition.complete();
@@ -67,19 +67,18 @@ const registration = defineConversation<BotContext, RegistrationData>()<Registra
 });
 
 const bot = new Bot<BotContext>(token);
-const conversations = new ConversationEngine<BotContext>();
-conversations.register(registration);
+const scenarios = new ScenarioEngine<BotContext>();
+scenarios.register(registration);
 
-// Conversation progress is stored by the session middleware. Splitting the
-// controller and interceptor leaves a place for commands shared by all flows.
-bot.use(session<BotSession, BotContext>({ defaultSession: () => ({}) }));
-bot.use(conversations.controllerMiddleware());
+// Между controller и interceptor подключаются команды, доступные на любом шаге.
+bot.use(session<BotSession, BotContext>());
+bot.use(scenarios.controllerMiddleware());
 bot.command('cancel', async (ctx, next) => {
-  if (!ctx.conversation.cancel()) return next();
+  if (!ctx.scenario.cancel()) return next();
   await ctx.reply('Текущий диалог отменён.');
   return undefined;
 });
-bot.use(conversations.interceptMiddleware());
-bot.command('register', conversations.start(registration));
+bot.use(scenarios.interceptMiddleware());
+bot.command('register', scenarios.start(registration));
 
 bot.start();

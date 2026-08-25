@@ -1,7 +1,6 @@
 /**
- * Markdown and HTML formatting helpers for MAX messages. Wrappers intentionally
- * do not escape their arguments: trusted markup may be composed freely, while
- * user-provided values must be passed through escape/escapeHtml explicitly.
+ * Форматирование Markdown и HTML для сообщений MAX. Обёртки не экранируют
+ * аргументы: пользовательский текст нужно явно передать в escape/escapeHtml.
  */
 
 export const bold = (text: string): string => `**${text}**`;
@@ -20,10 +19,9 @@ export const pre = (text: string, language = ''): string => {
 
 export const link = (text: string, url: string): string => `[${text}](${url})`;
 
-/** Escapes user-provided text before embedding it into Markdown. */
+/** Экранирует пользовательский текст перед вставкой в Markdown. */
 export const escape = (text: string): string => {
-  // Escape every character with formatting meaning rather than attempting to
-  // infer the surrounding Markdown context.
+  // Экранируем все управляющие символы, не пытаясь определить окружающий контекст.
   return text.replace(/([_*[\]()~`>#+=|{}.!\\-])/g, '\\$1');
 };
 
@@ -47,10 +45,9 @@ export const linkHtml = (text: string, url: string): string => {
   return `<a href="${escapeHtml(url)}">${text}</a>`;
 };
 
-/** Escapes user-provided text before embedding it into HTML. */
+/** Экранирует пользовательский текст перед вставкой в HTML. */
 export const escapeHtml = (text: string): string => {
-  // Ampersand must be replaced first so entities added below are not escaped a
-  // second time.
+  // Амперсанд заменяется первым, чтобы новые HTML-последовательности не экранировались повторно.
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

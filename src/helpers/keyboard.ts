@@ -1,23 +1,22 @@
 import type { Button, InlineKeyboardAttachmentRequest } from '../core/network/api';
 
-/** `hide` is local builder metadata and is never sent to MAX. */
+/** `hide` используется только при построении клавиатуры и не отправляется в MAX. */
 export type HideableButton<B extends Button = Button> = B & { hide?: boolean };
 
 export interface KeyboardBuildingOptions<B extends HideableButton = HideableButton> {
-  /** Number of buttons per row when no custom wrap function is provided. */
+  /** Количество кнопок в строке, если не задан `wrap`. */
   columns?: number;
-  /** Starts a new row before the current button when it returns true. */
+  /** При true начинает новую строку перед текущей кнопкой. */
   wrap?: (button: B, index: number, currentRow: B[]) => boolean;
 }
 
 const isGrid = <B>(buttons: B[] | B[][]): buttons is B[][] => {
-  // Empty input is handled before this guard, so inspecting the first element
-  // is sufficient and avoids flattening a user-provided layout.
+  // Пустой массив обработан выше, поэтому для определения сетки достаточно первого элемента.
   return buttons.length > 0 && Array.isArray(buttons[0]);
 };
 
 const removeMetadata = <B extends HideableButton>(button: B): Button => {
-  // Clone before deletion: callers may reuse their button definitions later.
+  // Клонируем кнопку, потому что её исходное описание может использоваться повторно.
   const result = { ...button };
   delete result.hide;
   return result;
@@ -30,14 +29,13 @@ const buildKeyboard = <B extends HideableButton>(
   if (buttons.length === 0) return [];
 
   if (isGrid(buttons)) {
-    // Preserve explicit row boundaries, removing only hidden buttons and rows
-    // that became empty as a result.
+    // Сохраняем заданные строки, удаляя только скрытые кнопки и опустевшие строки.
     return buttons
       .map((row) => row.filter((button) => !button.hide).map(removeMetadata))
       .filter((row) => row.length > 0);
   }
 
-  // Work on visible controls only; layout metadata never reaches the wire model.
+  // Раскладка строится только по видимым кнопкам; служебные данные не попадают в запрос.
   const visible = buttons.filter((button) => !button.hide);
   const columns = options.columns ?? 1;
   if (!Number.isInteger(columns) || columns < 1) {
@@ -47,8 +45,7 @@ const buildKeyboard = <B extends HideableButton>(
   let rows: B[][];
   const { wrap } = options;
   if (wrap === undefined) {
-    // Fixed columns are a pure slicing operation, which keeps layout independent
-    // from the iteration state used by custom policies.
+    // При фиксированном числе колонок достаточно разбить массив на части.
     const rowCount = Math.ceil(visible.length / columns);
     rows = Array.from({ length: rowCount }, (_, rowIndex) => {
       const start = rowIndex * columns;
@@ -81,8 +78,7 @@ export function inlineKeyboard(
   buttons: HideableButton[] | HideableButton[][],
   options: KeyboardBuildingOptions = {},
 ): InlineKeyboardAttachmentRequest {
-  // Overloads retain the original two-dimensional API while adding a convenient
-  // flat builder without changing the wire-format returned to MAX.
+  // Перегрузка сохраняет исходную двумерную форму и добавляет плоский список.
   return {
     type: 'inline_keyboard',
     payload: { buttons: buildKeyboard(buttons, options) },

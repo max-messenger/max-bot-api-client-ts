@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 import {
   Bot,
   Context,
-  ConversationEngine,
+  ScenarioEngine,
   Keyboard,
   MemorySessionStore,
   anyOf,
-  defineConversation,
+  defineScenario,
   fmt,
   session,
   transition,
-  type ConversationController,
-  type ConversationSession,
+  type ScenarioController,
+  type ScenarioSession,
 } from '@maxhub/max-bot-api';
 
 const token = process.env.BOT_TOKEN;
@@ -28,7 +28,7 @@ const positiveEnv = (name: string, fallback: number) => {
 };
 
 const sessionTtlMs = positiveEnv('SHOWCASE_SESSION_TTL_MS', 60 * 60 * 1000);
-const conversationTtlMs = positiveEnv('SHOWCASE_CONVERSATION_TTL_MS', 10 * 60 * 1000);
+const scenarioTtlMs = positiveEnv('SHOWCASE_SCENARIO_TTL_MS', 10 * 60 * 1000);
 
 const products = {
   coffee: { title: 'Кофе', price: 250 },
@@ -43,7 +43,7 @@ interface CartLine {
   quantity: number;
 }
 
-interface BotSession extends ConversationSession {
+interface BotSession extends ScenarioSession {
   seenUpdates: number;
   cart: CartLine[];
   failNextOrderSave: boolean;
@@ -51,7 +51,7 @@ interface BotSession extends ConversationSession {
 
 type BotContext = Context & {
   session: BotSession;
-  conversation: ConversationController<BotContext>;
+  scenario: ScenarioController<BotContext>;
 };
 
 interface Profile {
@@ -68,8 +68,7 @@ interface Order {
   delivery: Delivery;
 }
 
-// These maps imitate an application database only for this executable example.
-// A production bot should inject a durable repository here.
+// Эти Map изображают базу только в примере; рабочему боту нужно постоянное хранилище.
 const profiles = new Map<string, Profile>();
 const orders = new Map<string, Order>();
 
@@ -141,10 +140,10 @@ const registrationLocationKeyboard = Keyboard.inlineKeyboard([
   [Keyboard.button.callback('Использовать тестовую геопозицию', 'registration:location:test')],
 ]);
 
-const registration = defineConversation<BotContext, RegistrationData>()<RegistrationStep>({
+const registration = defineScenario<BotContext, RegistrationData>()<RegistrationStep>({
   id: 'registration',
   initialStep: 'ask-name',
-  idleTimeoutMs: conversationTtlMs,
+  idleTimeoutMs: scenarioTtlMs,
   createData: () => ({}),
   steps: {
     'ask-name': async ({ ctx }) => {
@@ -246,10 +245,10 @@ const deliveryKeyboard = () => keyboard([
   Keyboard.button.callback('Курьер', 'checkout:delivery:courier'),
 ]);
 
-const checkout = defineConversation<BotContext, CheckoutData>()<CheckoutStep>({
+const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
   id: 'checkout',
   initialStep: 'review',
-  idleTimeoutMs: conversationTtlMs,
+  idleTimeoutMs: scenarioTtlMs,
   createData: (ctx) => ({
     orderId: randomUUID(),
     items: structuredClone(ctx.session.cart),
@@ -304,13 +303,13 @@ const checkout = defineConversation<BotContext, CheckoutData>()<CheckoutStep>({
       }
       if (data.delivery === undefined) throw new Error('Delivery method is missing');
 
-      // The flag demonstrates retry semantics: a failed step is not completed.
+      // Флаг показывает повтор: после ошибки сценарий не завершится.
       if (ctx.session.failNextOrderSave) {
         ctx.session.failNextOrderSave = false;
         throw new Error('Simulated order repository failure');
       }
 
-      // A stable order id makes the fake write idempotent if an update is retried.
+      // Стабильный orderId не даёт создать второй заказ при повторной обработке update.
       if (!orders.has(data.orderId)) {
         orders.set(data.orderId, {
           id: data.orderId,
@@ -329,11 +328,11 @@ const checkout = defineConversation<BotContext, CheckoutData>()<CheckoutStep>({
 });
 
 const bot = new Bot<BotContext>(token);
-const conversations = new ConversationEngine<BotContext>();
-conversations.register(registration).register(checkout);
+const scenarios = new ScenarioEngine<BotContext>();
+scenarios.register(registration).register(checkout);
 
 bot.catch(async (error, ctx) => {
-  // Keep polling alive in this demo and show that the current step can be retried.
+  // В примере polling продолжает работу, чтобы пользователь мог повторить текущий шаг.
   // eslint-disable-next-line no-console
   console.error(`[${String(ctx.state.requestId)}]`, error);
   if (ctx.callback !== undefined) {
@@ -342,7 +341,7 @@ bot.catch(async (error, ctx) => {
   await ctx.reply('Операция не выполнена. Состояние сохранено — повторите действие или /cancel.');
 });
 
-// state lives for one update; session lives between updates with the same user/chat key.
+// state живёт один update, session — между update с одинаковым ключом пользователя и чата.
 bot.use(async (ctx, next) => {
   ctx.state.requestId = randomUUID();
   await next();
@@ -367,7 +366,7 @@ bot.use(async (ctx, next) => {
   ctx.session.seenUpdates += 1;
   return next();
 });
-bot.use(conversations.controllerMiddleware());
+bot.use(scenarios.controllerMiddleware());
 
 const commands = [
   { name: 'start', description: 'Показать возможности бота' },
@@ -391,12 +390,12 @@ const help = [
 
 const welcome = 'Привет! Здесь можно проверить регистрацию и оформление заказа. Справка: /help';
 
-// These commands remain available even while a conversation owns other updates.
+// Эти команды доступны, даже когда остальные update перехватывает активный сценарий.
 bot.on('bot_started', (ctx) => ctx.reply(welcome));
 bot.command('start', (ctx) => ctx.reply(welcome));
 bot.command('help', (ctx) => ctx.reply(help, { format: 'html' }));
 bot.command('cancel', async (ctx) => {
-  const canceled = ctx.conversation.cancel();
+  const canceled = ctx.scenario.cancel();
   await ctx.reply(canceled ? 'Активный сценарий отменён.' : 'Активного сценария нет.');
 });
 bot.command('state', async (ctx) => {
@@ -404,7 +403,7 @@ bot.command('state', async (ctx) => {
   await ctx.reply(fmt.preHtml(snapshot, 'json'), { format: 'html' });
 });
 bot.command('reset', async (ctx) => {
-  ctx.conversation.cancel();
+  ctx.scenario.cancel();
   ctx.session.cart = [];
   ctx.session.failNextOrderSave = false;
   await ctx.reply('Корзина и активный сценарий сброшены.');
@@ -434,10 +433,10 @@ bot.command('orders', async (ctx) => {
   await ctx.reply([fmt.boldHtml('Заказы'), ...lines].join('\n'), { format: 'html' });
 });
 
-// Active conversations consume non-global updates after this point.
-bot.use(conversations.interceptMiddleware());
+// После этой точки активный сценарий забирает все неглобальные update.
+bot.use(scenarios.interceptMiddleware());
 
-bot.command('register', conversations.start(registration));
+bot.command('register', scenarios.start(registration));
 bot.command('catalog', async (ctx) => {
   await ctx.reply('Добавьте товары в корзину:', {
     attachments: keyboard([
@@ -466,17 +465,17 @@ bot.action('cart:clear', async (ctx) => {
 });
 bot.action('checkout:start', async (ctx) => {
   await ctx.answerOnCallback({ notification: 'Переходим к оформлению' });
-  await ctx.conversation.start(checkout);
+  await ctx.scenario.start(checkout);
 });
 bot.command('cart', (ctx) => {
   return ctx.reply(cartText(ctx.session.cart), cartReplyExtra(ctx.session.cart));
 });
-bot.command('checkout', conversations.start(checkout));
+bot.command('checkout', scenarios.start(checkout));
 
 bot.on('message_created', (ctx) => ctx.reply('Команда не распознана. Используйте /help.'));
 
 const run = async () => {
-  // MAX uses this list to show command descriptions when the user enters `/`.
+  // MAX показывает этот список как подсказку при вводе `/`.
   await bot.api.setMyCommands(commands);
   await bot.start({
     allowedUpdates: ['bot_started', 'message_created', 'message_callback'],
@@ -484,7 +483,7 @@ const run = async () => {
 };
 
 run().catch((error: unknown) => {
-  // Startup errors happen before bot.catch() can handle an update.
+  // Ошибки запуска возникают вне обработки update и не попадают в bot.catch().
   // eslint-disable-next-line no-console
   console.error('Failed to start showcase bot', error);
   process.exitCode = 1;

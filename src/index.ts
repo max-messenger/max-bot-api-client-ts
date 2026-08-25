@@ -1,40 +1,43 @@
-// Stable public facade. Internal folders may move without changing consumer imports.
+// Стабильный публичный фасад: внутренние папки можно менять без изменения импортов SDK.
 export { Api } from './api';
 export { Bot } from './bot';
 
-// Update-scoped framework primitives.
+// Примитивы обработки одного update.
+export { Composer } from './core/composer';
+export { Context } from './core/context';
 export {
-  Composer, Context,
   allOf, anyOf, createdMessageBodyHas, messageCallback, messageEdited,
-} from './framework';
+} from './core/composer/modules/filters';
 export type {
-  AsyncPredicate, DispatchResult, FilteredContext, Middleware, MiddlewareFn,
-  MiddlewareObj, NextFn, Predicate,
-  TriggerFn, Triggers,
-} from './framework';
+  AsyncPredicate, DispatchResult, Predicate, TriggerFn, Triggers,
+} from './core/composer';
+export type { FilteredContext } from './core/context';
+export type {
+  Middleware, MiddlewareFn, MiddlewareList, MiddlewareObj, NextFn,
+} from './core/middleware';
 
-// Persistent per-user/per-chat state.
+// Состояние пользователя и чата между update.
 export { MemorySessionStore, session } from './session';
 export type {
   AsyncSessionStore, SessionContext, SessionOptions,
   SessionStore, SyncSessionStore,
 } from './session';
 
-// Named-step dialog flows stored inside session.
-export { ConversationEngine, defineConversation, transition } from './conversation';
+// Сценарии с именованными шагами, состояние которых хранится в session.
+export { ScenarioEngine, defineScenario, transition } from './scenario';
 export type {
-  ConversationContext,
-  ConversationController,
-  ConversationDefinition,
-  ConversationEngineOptions,
-  ConversationSession,
-  ConversationState,
-  ConversationStep,
-  ConversationStepInput,
-  ConversationTransition,
-} from './conversation';
+  ScenarioContext,
+  ScenarioController,
+  ScenarioDefinition,
+  ScenarioEngineOptions,
+  ScenarioSession,
+  ScenarioState,
+  ScenarioStep,
+  ScenarioStepInput,
+  ScenarioTransition,
+} from './scenario';
 
-// Message payload and presentation helpers.
+// Вложения, кнопки и форматирование сообщений.
 export {
   AudioAttachment, FileAttachment, ImageAttachment, Keyboard,
   LocationAttachment, ShareAttachment, StickerAttachment,

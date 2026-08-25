@@ -1,11 +1,11 @@
 import vCard from 'vcf';
-import type { Guard, Guarded, MaybeArray } from '../core/types';
+import type { Guard, Guarded, MaybeArray } from './types';
 import type {
   AnswerOnCallbackExtra, BotInfo, BotStartedUpdate, Chat,
   EditMessageExtra, FilteredUpdate, GetMessagesExtra, Message,
   MessageCallbackUpdate, SenderAction, SendMessageExtra,
   Update, UpdateType, User,
-} from '../core/network/api';
+} from './network/api';
 
 import { type Api } from '../api';
 import {
@@ -14,7 +14,7 @@ import {
   GetChatMembersExtra,
   GetCommentsExtra,
   PinMessageExtra,
-} from '../core/network/api/modules';
+} from './network/api/modules';
 
 export type FilteredContext<
   Ctx extends Context<any>,
@@ -90,13 +90,10 @@ type Sticker = {
 };
 
 export class Context<U extends Update = Update> {
-  /** Match produced by command/hears/action for the selected handler. */
+  /** Совпадение, найденное `command`, `hears` или `action`. */
   match?: RegExpExecArray;
 
-  /**
-   * Per-update storage shared by middleware in the current chain. A fresh
-   * Context is created for every update; persistent data belongs in session.
-   */
+  /** Временные данные одного update; состояние между update хранится в session. */
   state: Record<string | symbol, unknown> = {};
 
   constructor(
@@ -109,8 +106,7 @@ export class Context<U extends Update = Update> {
     this: Ctx,
     filters: MaybeArray<Filter>,
   ): this is FilteredContext<Ctx, Filter> {
-    // Runtime matching and the type predicate intentionally live together so a
-    // successful check narrows update-specific Context getters for TypeScript.
+    // Общая runtime-проверка одновременно сужает тип доступных полей Context.
     for (const filter of Array.isArray(filters) ? filters : [filters]) {
       if (typeof filter === 'function'
         ? filter(this.update)

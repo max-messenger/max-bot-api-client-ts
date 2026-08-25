@@ -158,9 +158,7 @@ export class Upload {
     onUploadProgress,
   }: UploadFromBufferParams): Promise<Res> => {
     const formData = new FormDataStream();
-    // Node accepts Buffer as Blob data; the cast bridges its broader generic type.
-    const blobPart = file.buffer as unknown as BlobPart;
-    formData.append('data', new Blob([blobPart]), file.fileName);
+    formData.append('data', file.buffer, file.fileName);
 
     const result = await this.streamUploadClient.post<Res>(
       uploadUrl,

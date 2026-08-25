@@ -1,21 +1,24 @@
-import type { MaybePromise } from '../core/types';
-import type { Context } from './context';
-import { flatten, passThru } from './composition';
-import type { Middleware, MiddlewareFn } from './middleware';
+import type { MaybePromise } from '../../types';
+import type { Context } from '../../context';
+import { flatten, passThrough } from './composition';
+import type { Middleware, MiddlewareFn } from '../../middleware';
 
-/** A route may attach update-scoped values before its handler starts. */
+/** Маршрут может добавить временные значения в `ctx.state` перед обработчиком. */
 export type DispatchResult<Key extends PropertyKey> =
   Key | { route: Key; state?: Record<string | symbol, unknown> };
 
 const hasOwn = (value: object, key: PropertyKey) => {
-  // Routes such as `toString` must not select properties inherited from Object.
+  // Маршрут `toString` не должен выбирать свойство, унаследованное от Object.
   return Object.prototype.hasOwnProperty.call(value, key);
 };
 
-// State is copied onto a regular Context object. Reject prototype-related keys
-// even when they arrive from parsed JSON or another untrusted route source.
+// Эти ключи могли бы изменить прототип Context при копировании внешних данных.
 const unsafeStateKeys = new Set(['__proto__', 'constructor', 'prototype']);
 
+/**
+ * Выбирает middleware по результату route.
+ * Неизвестный или пустой маршрут обрабатывает fallback.
+ */
 export function dispatch<
   C extends Context,
   Handlers extends Record<PropertyKey, Middleware<C>>,
@@ -24,14 +27,17 @@ export function dispatch<
     ctx: C,
   ) => MaybePromise<DispatchResult<keyof Handlers> | null | undefined>,
   handlers: Handlers,
-  fallback: Middleware<C> = passThru<C>(),
+  fallback: Middleware<C> = passThrough<C>(),
 ): MiddlewareFn<C> {
   const fallbackHandler = flatten(fallback);
   return async (ctx, next) => {
     const result = await route(ctx);
-    if (result === null || result === undefined) return fallbackHandler(ctx, next);
-    const key = typeof result === 'object' ? result.route : result;
-    if (typeof result === 'object' && result.state !== undefined) {
+    if (result == null) return fallbackHandler(ctx, next);
+
+    const isObject = typeof result === 'object';
+    const key = isObject ? result.route : result;
+
+    if (isObject && result.state !== undefined) {
       for (const stateKey of Reflect.ownKeys(result.state)) {
         if (typeof stateKey === 'string' && unsafeStateKeys.has(stateKey)) {
           throw new TypeError(`Unsafe context state key "${stateKey}"`);
@@ -39,6 +45,7 @@ export function dispatch<
         ctx.state[stateKey] = result.state[stateKey];
       }
     }
+
     const selected = hasOwn(handlers, key) ? handlers[key] : undefined;
     return selected === undefined
       ? fallbackHandler(ctx, next)
