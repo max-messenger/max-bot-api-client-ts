@@ -85,7 +85,7 @@ server.listen(3000);
 > await bot.api.subscribe(url, 'my-secret', ['message_created']);
 > ```
 
-Если вы хотите зарегистрировать webhook в MAX, но не поднимать сервер средствами SDK, используйте `bot.createWebhook(...)`.
+Если вы хотите зарегистрировать webhook в MAX и автоматически удалить подписки, но не поднимать сервер средствами SDK, используйте `bot.createWebhook(...)`.
 Он отправляет запрос на подписку (так же, как это делает `bot.start({ mode: 'webhook' })`) и возвращает готовый `(req, res)`-колбэк для вашего HTTP-сервера:
 
 ```typescript
@@ -134,7 +134,7 @@ Webhook.getWebhookUrl('https://my-bot.example.com', '/webhook/abc');
 
 ## Очистка подписок
 
-Для удаления устаревших подписок (например, оставшихся от Long Polling) можно использовать статический метод `Webhook.clearSubscriptions`:
+Для удаления устаревших подписок можно использовать статический метод `Webhook.clearSubscriptions`:
 
 ```typescript
 import { Webhook } from '@maxhub/max-bot-api';
