@@ -3,18 +3,22 @@ import { ChatType } from './chat';
 import { MarkupElement } from './markup';
 import { User } from './user';
 
+export type MessageTextFormat = 'markdown' | 'html'
+
 export type MessageSender = User;
 
 export type MessageRecipient = {
   chat_id: number | null;
   chat_type: ChatType;
+  user_id: number | null;
+  post_id: number | null;
 };
 
 export type MessageBody = {
   mid: string;
   seq: number;
   text: string | null;
-  attachments: Attachment[] | null;
+  attachments?: Attachment[] | null;
   markup?: MarkupElement[] | null;
 };
 
@@ -31,8 +35,6 @@ export type MessageStat = {
   views: number;
 };
 
-export type MessageConstructor = User;
-
 export type Message = {
   sender?: MessageSender | null;
   recipient: MessageRecipient;
@@ -41,7 +43,6 @@ export type Message = {
   body: MessageBody;
   stat?: MessageStat | null;
   url?: string | null;
-  constructor?: MessageConstructor | null;
 };
 
 export type ConstructedMessage = Pick<Message, 'sender' | 'timestamp' | 'link' | 'body'>;

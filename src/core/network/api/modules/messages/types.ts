@@ -1,5 +1,5 @@
 import {
-  ActionResponse, AttachmentRequest, Message, MessageLinkType,
+  ActionResponse, AttachmentRequest, Message, MessageLinkType, MessageTextFormat,
 } from '../../types';
 import type { FlattenReq } from '../types';
 
@@ -40,7 +40,7 @@ export type SendMessageDTO = {
     attachments?: AttachmentRequest[] | null;
     link?: { type: MessageLinkType; mid: string } | null;
     notify?: boolean;
-    format?: 'markdown' | 'html' | null;
+    format?: MessageTextFormat | null;
   }
 };
 

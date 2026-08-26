@@ -1,4 +1,9 @@
-import { ActionResponse, Message, MessageLinkType } from '../../types';
+import {
+  ActionResponse,
+  Message,
+  MessageLinkType,
+  MessageTextFormat
+} from '../../types';
 import type { FlattenReq } from '../types';
 
 export type CommentMessage = Pick<Message, 'sender' | 'timestamp' | 'link' | 'body' | 'recipient'>;
@@ -8,7 +13,7 @@ type CommentDTOPath = {
 type CommentDTOBody = {
   text?: string | null;
   link?: { type: MessageLinkType; mid: string } | null;
-  format?: 'markdown' | 'html' | null;
+  format?: MessageTextFormat | null;
 };
 
 export type GetCommentsDTO = {
