@@ -15,7 +15,7 @@ export type ReqOptions = {
   method?: HTTPMethod;
   body?: object | null,
   query?: Record<string, string | number | boolean | null | undefined>,
-  path?: Record<string, string | number>,
+  path?: Record<string, string | number | boolean>,
   signal?: AbortSignal,
 };
 

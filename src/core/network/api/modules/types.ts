@@ -1,6 +1,6 @@
 import { ReqOptions } from '../client';
 import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
-import type {
+import {
   AddChatMembersDTO,
   AddChatMembersResponse,
   EditChatInfoDTO,
@@ -16,15 +16,19 @@ import type {
   GetPinnedMessageDTO,
   GetPinnedMessageResponse,
   LeaveChatDTO,
-  LeaveChatResponse, 
+  LeaveChatResponse,
   PinMessageDTO,
   PinMessageResponse,
   RemoveChatMemberDTO,
   RemoveChatMemberResponse,
   SendActionDTO,
   SendActionResponse,
+  AddChatAdminsDTO,
+  AddChatAdminsResponse,
   UnpinMessageDTO,
   UnpinMessageResponse,
+  DeleteAdminChatMemberDTO,
+  DeleteAdminChatMemberResponse,
 } from './chats/types';
 import {
   DeleteCommentDTO, DeleteCommentResponse,
@@ -121,7 +125,11 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: SendCommentDTO,
       res: SendCommentResponse,
-    }
+    },
+    'chats/{chat_id}/members/admins': {
+      req: AddChatAdminsDTO,
+      res: AddChatAdminsResponse,
+    },
   },
   PATCH: {
     'me/commands': {
@@ -156,7 +164,7 @@ export type ApiMethods = {
       req: UnpinMessageDTO,
       res: UnpinMessageResponse,
     },
-    'chats/{chat_id}/members': {
+    'chats/{chat_id}/members?user_id={user_id}&block={block}': {
       req: RemoveChatMemberDTO,
       res: RemoveChatMemberResponse,
     },
@@ -167,6 +175,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: DeleteCommentDTO,
       res: DeleteCommentResponse,
+    }
+    'chats/{chat_id}/members/admins/{user_id}': {
+      req: DeleteAdminChatMemberDTO,
+      res: DeleteAdminChatMemberResponse,
     }
   }
 };

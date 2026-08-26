@@ -1,5 +1,5 @@
 import {
-  ActionResponse, Chat, ChatMember, Message, type PhotoAttachmentRequestPayload, SenderAction,
+  ActionResponse, Chat, ChatAdmin, ChatMember, Message, type PhotoAttachmentRequestPayload, SenderAction,
 } from '../../types';
 import { FlattenReq } from '../types';
 
@@ -20,6 +20,7 @@ export type EditChatInfoDTO = {
     title?: string | null;
     pin?: string | null;
     notify?: boolean | null;
+    description?: string | null;
   }
 };
 
@@ -41,7 +42,7 @@ export type GetPinnedMessageDTO = {
 };
 
 export type GetPinnedMessageResponse = {
-  message: Message | null
+  message?: Message | null
 };
 
 export type PinMessageDTO = {
@@ -83,6 +84,26 @@ export type GetChatAdminsResponse = {
   marker?: number | null;
 };
 
+export type AddChatAdminsDTO = {
+  path: DefaultPath;
+  body: {
+    admins: ChatAdmin[]
+    marker?: number | null;
+  }
+}
+
+export type AddChatAdminsResponse = ActionResponse;
+
+export type AddChatAdminsExtra = Omit<FlattenReq<AddChatAdminsDTO>, 'chat_id' | 'admins' | 'signal'>
+
+export type DeleteAdminChatMemberDTO = {
+  path: DefaultPath & {
+    user_id: number;
+  };
+}
+
+export type DeleteAdminChatMemberResponse = ActionResponse;
+
 export type GetChatMembersDTO = {
   path: DefaultPath;
   query: {
@@ -108,14 +129,21 @@ export type AddChatMembersDTO = {
   }
 };
 
-export type AddChatMembersResponse = ActionResponse;
+type FailedUserDetails = {
+  error_code: 'add.participant.privacy' | 'add.participant.not.found',
+  user_ids: number[];
+}
+
+export type AddChatMembersResponse = ActionResponse & {
+  failed_user_ids?: number[] | null;
+  failed_user_details?: FailedUserDetails[] | null;
+};
 
 export type RemoveChatMemberDTO = {
-  path: DefaultPath;
-  body: {
+  path: DefaultPath & {
     user_id: number;
     block?: boolean;
-  }
+  };
 };
 
 export type RemoveChatMemberResponse = ActionResponse;

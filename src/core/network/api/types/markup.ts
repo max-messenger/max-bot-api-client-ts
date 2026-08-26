@@ -1,3 +1,11 @@
+type MakeMarkup<Type extends string, Data extends object> = {
+  type: Type;
+  from: number;
+  length: number;
+} & {
+  [key in keyof Data]: Data[key];
+};
+
 export type MarkupType  =
   | 'strong'
   | 'emphasized'
@@ -5,13 +13,15 @@ export type MarkupType  =
   | 'link'
   | 'strikethrough'
   | 'underline'
-  | 'user_mention'
   | 'heading'
   | 'highlighted'
   | 'quote';
 
-export type MarkupElement = {
-  type: MarkupType;
-  from: number;
-  length: number;
-}
+type BaseMarkup = MakeMarkup<MarkupType, {}>
+
+export type UserMentionMarkup = MakeMarkup<'user_mention', {
+  user_link?: string | null;
+  user_id?: number | null;
+}>;
+
+export type MarkupElement = BaseMarkup | UserMentionMarkup

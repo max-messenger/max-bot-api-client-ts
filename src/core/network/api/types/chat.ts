@@ -30,7 +30,7 @@ export type Chat = {
   pinned_message?: Message | null;
 };
 
-export type SenderAction = 'typing_on' | 'sending_photo' | 'sending_video' | 'sending_audio' | 'sending_file' | 'mark_seen';
+export type SenderAction = 'typing_on' | 'sending_photo' | 'sending_video' | 'sending_audio' | 'sending_file';
 
 export type ChatPermissions =
   | 'read_all_messages'
@@ -55,3 +55,7 @@ export type ChatMember = UserWithPhoto & {
   permissions: ChatPermissions[] | null;
   alias?: string;
 };
+
+export type ChatAdmin = Pick<UserWithPhoto, 'user_id'> & Pick<ChatMember, 'alias'> & {
+  permissions: ChatPermissions[];
+}

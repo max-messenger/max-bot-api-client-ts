@@ -1,11 +1,11 @@
 import vCard from 'vcf';
 import { type Api } from './api';
 import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
-import type {
+import {
   AnswerOnCallbackExtra,
   BotInfo,
   BotStartedUpdate,
-  Chat,
+  Chat, ChatAdmin,
   EditMessageExtra,
   FilteredUpdate,
   GetMessagesExtra,
@@ -22,7 +22,7 @@ import {
   EditChatExtra,
   GetChatMembersExtra,
   GetCommentsExtra,
-  PinMessageExtra,
+  PinMessageExtra, AddChatAdminsExtra,
 } from './core/network/api/modules';
 
 export type FilteredContext<
@@ -248,6 +248,19 @@ export class Context<U extends Update = Update> {
     return this.api.getChatAdmins(this.chatId);
   }
 
+  async addChatAdmins(
+    admins: ChatAdmin[],
+    extra?: AddChatAdminsExtra
+  ) {
+    this.assert(this.chatId, 'addChatAdmins');
+    return this.api.addChatAdmins(this.chatId, admins, extra);
+  }
+
+  async removeChatAdmin(userId: number) {
+    this.assert(this.chatId, 'removeChatAdmin');
+    return this.api.removeChatAdmin(this.chatId, userId);
+  }
+
   async addChatMembers(userIds: number[]) {
     this.assert(this.chatId, 'addChatMembers');
     return this.api.addChatMembers(this.chatId, userIds);
@@ -308,6 +321,7 @@ const getChatId = (update: Update) => {
   }
 
   if ('chat' in update) {
+    // @ts-expect-error dsada
     return update.chat.chat_id;
   }
 

@@ -13,17 +13,17 @@ import type {
 } from './core/helpers/upload';
 import { Upload } from './core/helpers/upload/upload';
 
-import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
+import {ChatAdmin, GetMessagesExtra, RawApi, SenderAction} from './core/network/api';
 
 import type {
   AnswerOnCallbackExtra, Client, DeleteMessageExtra,
   EditMessageExtra, SendMessageExtra, BotCommand,
   FlattenReq, GetUpdatesDTO, UpdateType,
 } from './core/network/api';
-import type {
+import {
   EditChatExtra, EditCommentExtra,
   GetChatMembersExtra, GetCommentsExtra,
-  PinMessageExtra, SendCommentExtra,
+  PinMessageExtra, SendCommentExtra, AddChatAdminsExtra,
 } from './core/network/api/modules';
 
 export class Api {
@@ -127,6 +127,18 @@ export class Api {
   getChatAdmins = (chatId: number) => {
     return this.raw.chats.getChatAdmins({ chat_id: chatId });
   };
+
+  addChatAdmins = async (
+    chatId: number,
+    admins: ChatAdmin[],
+    extra?: AddChatAdminsExtra
+  ) => {
+    return this.raw.chats.addChatAdmins({ chat_id: chatId, admins, ...extra });
+  }
+
+  removeChatAdmin = async (chatId: number, userId: number) => {
+    return this.raw.chats.deleteChatAdmin({ chat_id: chatId, user_id: userId });
+  }
 
   addChatMembers = (chatId: number, userIds: number[]) => {
     return this.raw.chats.addChatMembers({
