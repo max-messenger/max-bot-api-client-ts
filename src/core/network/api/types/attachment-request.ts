@@ -1,4 +1,4 @@
-import { NullableObject } from '../../../helpers/types';
+import { NullableObject } from '../../../types';
 
 import { Button } from './keyboard';
 

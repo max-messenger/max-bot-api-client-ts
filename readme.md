@@ -2,7 +2,13 @@
 
 ## Документация
 
-В [документации](https://github.com/max-messenger/max-bot-api-client-ts/tree/main/docs) вы можете найти подробные инструкции по использованию фреймворка.
+В [документации](https://github.com/max-messenger/max-bot-api-client-ts/tree/main/docs) вы можете найти подробные инструкции по использованию SDK, включая [сессии и пошаговые сценарии](https://github.com/max-messenger/max-bot-api-client-ts/blob/main/docs/06-sessions-and-scenarios.md), а также [общую концепцию SDK](https://github.com/max-messenger/max-bot-api-client-ts/blob/main/docs/09-sdk-concepts.md).
+
+> [!WARNING]
+> По умолчанию `session()` хранит данные только в памяти процесса. При остановке,
+> падении или перезапуске бота все сессии и незавершённые сценарии будут потеряны.
+> Для одного процесса можно подключить SQLite, а для нескольких экземпляров —
+> общее хранилище, например Redis или серверную базу данных.
 
 ## Быстрый старт
 

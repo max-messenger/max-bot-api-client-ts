@@ -1,20 +1,4 @@
-import {
-  AudioAttachment,
-  FileAttachment,
-  ImageAttachment,
-  VideoAttachment,
-} from './core/helpers/attachments';
-import type { MaybeArray } from './core/helpers/types';
-import type {
-  UploadFileOptions,
-  UploadImageOptions,
-  UploadVideoOptions,
-  UploadAudioOptions, 
-} from './core/helpers/upload';
-import { Upload } from './core/helpers/upload/upload';
-
 import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
-
 import type {
   AnswerOnCallbackExtra, Client, DeleteMessageExtra,
   EditMessageExtra, SendMessageExtra, BotCommand,
@@ -26,6 +10,20 @@ import type {
   GetChatMembersExtra, GetCommentsExtra,
   PinMessageExtra, SendCommentExtra,
 } from './core/network/api/modules';
+import type { MaybeArray } from './core/types';
+import {
+  AudioAttachment,
+  FileAttachment,
+  ImageAttachment,
+  VideoAttachment,
+} from './helpers/attachments';
+import { Upload } from './helpers/upload';
+import type {
+  UploadFileOptions,
+  UploadImageOptions,
+  UploadVideoOptions,
+  UploadAudioOptions,
+} from './helpers/upload';
 
 export class Api {
   raw: RawApi;
