@@ -254,13 +254,13 @@ export class Api {
   };
 
   editComment = async (
-    messageId: string,
+    message_id: string,
     comment_id: string,
     text: string,
     extra: EditCommentExtra,
   ) => {
     return this.raw.comments.edit({
-      messageId, text, comment_id, ...extra,
+      message_id, text, comment_id, ...extra,
     });
   };
 

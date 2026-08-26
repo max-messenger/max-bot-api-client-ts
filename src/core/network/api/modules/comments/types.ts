@@ -57,11 +57,11 @@ export type SendCommentResponse = {
 export type EditCommentDTO = {
   query: {
     comment_id: string;
+    message_id: string;
   },
-  path: CommentDTOPath,
   body: CommentDTOBody
 };
-export type EditCommentExtra = Omit<FlattenReq<EditCommentDTO>, 'messageId' | 'text' | 'comment_id'>;
+export type EditCommentExtra = Omit<FlattenReq<EditCommentDTO>, 'message_id' | 'text' | 'comment_id'>;
 export type EditCommentResponse = ActionResponse;
 
 export type DeleteCommentDTO = {

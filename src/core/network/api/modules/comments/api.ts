@@ -31,9 +31,9 @@ export class CommentsApi extends BaseApi {
   };
 
   edit = async ({
-    messageId, comment_id, ...body
+    message_id, comment_id, ...body
   }: FlattenReq<EditCommentDTO>): Promise<EditCommentResponse> => {
-    return this._put('messages/{messageId}/comments', { path: { messageId }, query: { comment_id }, body });
+    return this._put('messages/{messageId}/comments', { query: { message_id: message_id, comment_id }, body });
   };
 
   delete = async ({
