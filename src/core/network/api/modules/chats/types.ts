@@ -140,10 +140,11 @@ export type AddChatMembersResponse = ActionResponse & {
 };
 
 export type RemoveChatMemberDTO = {
-  path: DefaultPath & {
+  path: DefaultPath;
+  query: {
     user_id: number;
     block?: boolean;
-  };
+  }
 };
 
 export type RemoveChatMemberResponse = ActionResponse;

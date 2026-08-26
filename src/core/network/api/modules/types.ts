@@ -164,7 +164,7 @@ export type ApiMethods = {
       req: UnpinMessageDTO,
       res: UnpinMessageResponse,
     },
-    'chats/{chat_id}/members?user_id={user_id}&block={block}': {
+    'chats/{chat_id}/members': {
       req: RemoveChatMemberDTO,
       res: RemoveChatMemberResponse,
     },

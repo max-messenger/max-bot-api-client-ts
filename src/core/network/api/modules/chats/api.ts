@@ -118,12 +118,13 @@ export class ChatsApi extends BaseApi {
   }
 
   async removeChatMember(
-    { block, ...path }: FlattenReq<RemoveChatMemberDTO>,
+    { user_id, block, ...path }: FlattenReq<RemoveChatMemberDTO>,
   ): Promise<RemoveChatMemberResponse> {
-    return this._delete('chats/{chat_id}/members?user_id={user_id}&block={block}', {
-      path: {
-        ...path,
-        block: !!block
+    return this._delete('chats/{chat_id}/members', {
+      path,
+      query: {
+        user_id,
+        block: !!block,
       }
     });
   }
