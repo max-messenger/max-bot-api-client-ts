@@ -233,6 +233,10 @@ export class Context<U extends Update = Update> {
     return this.api.deleteMessage(this.messageId);
   }
 
+  async getVideoInfo(videoToken: string) {
+    return this.api.getVideoInfo(videoToken);
+  }
+
   async answerOnCallback(extra: AnswerOnCallbackExtra) {
     this.assert(this.callback, 'answerOnCallback');
     return this.api.answerOnCallback(this.callback.callback_id, extra);

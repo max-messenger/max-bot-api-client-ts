@@ -113,6 +113,10 @@ export class Api {
     return this.raw.messages.delete({ message_id: messageId, ...extra });
   };
 
+  getVideoInfo = async (videoToken: string) => {
+    return this.raw.messages.getVideoInfo({ video_token: videoToken });
+  }
+
   answerOnCallback = async (
     callbackId: string,
     extra?: AnswerOnCallbackExtra,

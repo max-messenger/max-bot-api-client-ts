@@ -37,12 +37,12 @@ import {
   GetCommentsDTO, GetCommentsResponse,
   SendCommentDTO, SendCommentResponse,
 } from './comments/types';
-import type {
+import {
   AnswerOnCallbackDTO, AnswerOnCallbackResponse,
   DeleteMessageDTO, DeleteMessageResponse,
   EditMessageDTO, EditMessageResponse,
   GetMessageDTO, GetMessageResponse,
-  GetMessagesDTO, GetMessagesResponse,
+  GetMessagesDTO, GetMessagesResponse, GetVideoInfoDTO, GetVideoInfoResponse,
   SendMessageDTO, SendMessageResponse,
 } from './messages/types';
 import type { GetUpdatesDTO, GetUpdatesResponse } from './subscriptions/types';
@@ -99,6 +99,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments/{commentId}': {
       req: GetCommentDTO,
       res: GetCommentResponse
+    },
+    'videos/{video_token}': {
+      req: GetVideoInfoDTO,
+      res: GetVideoInfoResponse
     }
   },
   POST: {
