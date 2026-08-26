@@ -3,22 +3,8 @@ import {
 } from '../../types';
 import { FlattenReq } from '../types';
 
-export type GetAllChatsDTO = {
-  query: {
-    count?: number;
-    marker?: number | null;
-  }
-};
-
-export type GetAllChatsExtra = FlattenReq<GetAllChatsDTO>;
-
 type DefaultPath = {
   chat_id: number;
-};
-
-export type GetAllChatsResponse = {
-  chats: Chat[];
-  marker: number | null;
 };
 
 export type GetChatByIdDTO = {

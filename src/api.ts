@@ -22,7 +22,6 @@ import type {
 } from './core/network/api';
 import type {
   EditChatExtra, EditCommentExtra,
-  GetAllChatsExtra,
   GetChatMembersExtra, GetCommentsExtra,
   PinMessageExtra, SendCommentExtra,
 } from './core/network/api/modules';
@@ -47,10 +46,6 @@ export class Api {
 
   deleteMyCommands = async () => {
     return this.raw.bots.editMyCommands({ commands: [] });
-  };
-
-  getAllChats = async (extra: GetAllChatsExtra = {}) => {
-    return this.raw.chats.getAll(extra);
   };
 
   getChat = async (id: number) => {
