@@ -20,6 +20,7 @@ import type {
 
 import {
   EditChatExtra,
+  GetAllChatsExtra,
   GetChatMembersExtra,
   GetCommentsExtra,
   PinMessageExtra,
@@ -191,6 +192,10 @@ export class Context<U extends Update = Update> {
   async reply(text: string, extra?: SendMessageExtra) {
     this.assert(this.chatId, 'reply');
     return this.api.sendMessageToChat(this.chatId, text, extra);
+  }
+
+  async getAllChats(extra?: GetAllChatsExtra) {
+    return this.api.getAllChats(extra);
   }
 
   async getChat(chatId?: number) {
