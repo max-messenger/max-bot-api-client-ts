@@ -1,20 +1,4 @@
-import {
-  AudioAttachment,
-  FileAttachment,
-  ImageAttachment,
-  VideoAttachment,
-} from './core/helpers/attachments';
-import type { MaybeArray } from './core/helpers/types';
-import type {
-  UploadFileOptions,
-  UploadImageOptions,
-  UploadVideoOptions,
-  UploadAudioOptions, 
-} from './core/helpers/upload';
-import { Upload } from './core/helpers/upload/upload';
-
 import {ChatAdmin, GetMessagesExtra, RawApi, SenderAction} from './core/network/api';
-
 import type {
   AnswerOnCallbackExtra, Client, DeleteMessageExtra,
   EditMessageExtra, SendMessageExtra, BotCommand,
@@ -22,9 +6,24 @@ import type {
 } from './core/network/api';
 import {
   EditChatExtra, EditCommentExtra,
+  GetAllChatsExtra,
   GetChatMembersExtra, GetCommentsExtra,
   PinMessageExtra, SendCommentExtra, AddChatAdminsExtra,
 } from './core/network/api/modules';
+import type { MaybeArray } from './core/types';
+import {
+  AudioAttachment,
+  FileAttachment,
+  ImageAttachment,
+  VideoAttachment,
+} from './helpers/attachments';
+import { Upload } from './helpers/upload';
+import type {
+  UploadFileOptions,
+  UploadImageOptions,
+  UploadVideoOptions,
+  UploadAudioOptions,
+} from './helpers/upload';
 
 export class Api {
   raw: RawApi;
@@ -46,6 +45,10 @@ export class Api {
 
   deleteMyCommands = async () => {
     return this.raw.bots.editMyCommands({ commands: [] });
+  };
+
+  getAllChats = async (extra: GetAllChatsExtra = {}) => {
+    return this.raw.chats.getAll(extra);
   };
 
   getChat = async (id: number) => {

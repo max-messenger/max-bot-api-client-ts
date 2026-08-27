@@ -1,6 +1,5 @@
 import vCard from 'vcf';
-import { type Api } from './api';
-import type { Guard, Guarded, MaybeArray } from './core/helpers/types';
+import { type Api } from '../api';
 import {
   AnswerOnCallbackExtra,
   BotInfo,
@@ -16,14 +15,16 @@ import {
   Update,
   UpdateType,
   User,
-} from './core/network/api'; 
+} from './network/api';
 
 import {
   EditChatExtra,
+  GetAllChatsExtra,
   GetChatMembersExtra,
   GetCommentsExtra,
   PinMessageExtra, AddChatAdminsExtra,
-} from './core/network/api/modules';
+} from './network/api/modules';
+import type { Guard, Guarded, MaybeArray } from './types';
 
 export type FilteredContext<
   Ctx extends Context<any>,
@@ -45,9 +46,9 @@ type GetChatId<U extends Update> =
     | U extends { chat_id: number }
       ? number
       : U extends MessageCallbackUpdate
-        ? number | undefined
+        ? number | null | undefined
         : U extends { message: Message }
-          ? number
+          ? number | null
           : undefined;
 
 type GetChat<U extends Update> =
@@ -99,7 +100,11 @@ type Sticker = {
 };
 
 export class Context<U extends Update = Update> {
+  /** Совпадение, найденное `command`, `hears` или `action`. */
   match?: RegExpExecArray;
+
+  /** Временные данные одного update; состояние между update хранится в session. */
+  state: Record<string | symbol, unknown> = {};
 
   constructor(
     readonly update: U,
@@ -111,6 +116,7 @@ export class Context<U extends Update = Update> {
     this: Ctx,
     filters: MaybeArray<Filter>,
   ): this is FilteredContext<Ctx, Filter> {
+    // Общая runtime-проверка одновременно сужает тип доступных полей Context.
     for (const filter of Array.isArray(filters) ? filters : [filters]) {
       if (typeof filter === 'function'
         ? filter(this.update)
@@ -124,10 +130,10 @@ export class Context<U extends Update = Update> {
   }
 
   assert<T extends string | number | object>(
-    value: T | undefined,
+    value: T | null | undefined,
     method: string,
   ): asserts value is T {
-    if (value === undefined) {
+    if (value == null) {
       throw new TypeError(
         `Max: "${method}" isn't available for "${this.updateType}"`,
       );
@@ -191,6 +197,10 @@ export class Context<U extends Update = Update> {
   async reply(text: string, extra?: SendMessageExtra) {
     this.assert(this.chatId, 'reply');
     return this.api.sendMessageToChat(this.chatId, text, extra);
+  }
+
+  async getAllChats(extra?: GetAllChatsExtra) {
+    return this.api.getAllChats(extra);
   }
 
   async getChat(chatId?: number) {

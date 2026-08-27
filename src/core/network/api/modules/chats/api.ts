@@ -4,6 +4,8 @@ import {
   AddChatMembersDTO, AddChatMembersResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
+  GetAllChatsDTO,
+  GetAllChatsResponse,
   GetChatAdminsDTO,
   GetChatAdminsResponse,
   GetChatByIdDTO,
@@ -25,6 +27,12 @@ import {
 } from './types';
 
 export class ChatsApi extends BaseApi {
+  async getAll({ ...query }: FlattenReq<GetAllChatsDTO>): Promise<GetAllChatsResponse> {
+    return this._get('chats', {
+      query,
+    });
+  }
+
   async getById({ chat_id }: FlattenReq<GetChatByIdDTO>): Promise<GetChatByIdResponse> {
     return this._get('chats/{chat_id}', {
       path: { chat_id },

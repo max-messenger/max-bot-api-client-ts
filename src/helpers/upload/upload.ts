@@ -3,13 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import FormDataStream from 'form-data';
 
-import { type Api } from '../../../api';
+import { type Api } from '../../api';
 import {
   StreamUploadClient,
   type UploadType,
   type StreamUploadEvent,
   type StreamUploadProgressCallback,
-} from '../../network/api';
+} from '../../core/network/api';
 import type {
   FileSource,
   UploadFile,

@@ -5,6 +5,8 @@ import {
   AddChatMembersResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
+  GetAllChatsDTO,
+  GetAllChatsResponse,
   GetChatAdminsDTO,
   GetChatAdminsResponse,
   GetChatByIdDTO,
@@ -56,6 +58,10 @@ export type FlattenReq<T extends Omit<ReqOptions, 'method'>> = T['body'] & T['qu
 
 export type ApiMethods = {
   GET: {
+    chats: {
+      req: GetAllChatsDTO,
+      res: GetAllChatsResponse,
+    },
     'chats/{chat_id}': {
       req: GetChatByIdDTO,
       res: GetChatByIdResponse,

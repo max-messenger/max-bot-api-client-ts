@@ -1,14 +1,14 @@
 import { setTimeout } from 'node:timers/promises';
 import createDebug from 'debug';
 import { Api } from './api';
-import { Composer } from './composer';
-import { Context } from './context';
-import { MaybePromise } from './core/helpers/types';
+import { Composer } from './core/composer';
+import { Context } from './core/context';
 
 import {
   BotInfo, ClientOptions, createClient, Update, UpdateType,
 } from './core/network/api';
 import { Polling } from './core/network/polling';
+import type { MaybePromise } from './core/types';
 
 
 const debug = createDebug('max:main');

@@ -6,7 +6,7 @@ import {
   ShareAttachmentRequest,
   StickerAttachmentRequest,
   VideoAttachmentRequest,
-} from '../network/api';
+} from '../core/network/api';
 
 class Attachment {
   toJson() {
