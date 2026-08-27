@@ -324,11 +324,6 @@ const getChatId = (update: Update) => {
     return update.message.recipient.chat_id;
   }
 
-  if ('chat' in update) {
-    // @ts-expect-error dsada
-    return update.chat.chat_id;
-  }
-
   return undefined;
 };
 
