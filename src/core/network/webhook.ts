@@ -127,8 +127,16 @@ export class Webhook {
 
     this.server = createServer(this.createCallback(handleUpdate));
 
-    this.server.listen(this.port, () => {
-      debug('Standalone Webhook server is listening on port %d', this.port);
+    await new Promise<void>((resolve, reject) => {
+      this.server!.listen(this.port, () => {
+        debug('Standalone Webhook server is listening on port %d', this.port);
+        resolve();
+      });
+
+      this.server!.once('error', (error) => {
+        debug('Standalone Webhook server start failed %d', this.port);
+        reject(error);
+      });
     });
 
     try {
