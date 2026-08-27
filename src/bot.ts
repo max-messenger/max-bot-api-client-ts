@@ -94,6 +94,13 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     }
 
     if (config.mode === 'polling') {
+      try {
+        await Webhook.clearSubscriptions(this.api)
+      } catch (error) {
+        debug('Failed to unsubscribe from webhook updates: %O', error);
+        throw error;
+      }
+
       return this.startPolling(config.options);
     }
 
