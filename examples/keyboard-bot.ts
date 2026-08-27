@@ -19,11 +19,10 @@ const defaultKeyboard = [
 
 bot.action('remove_message', async (ctx) => {
   const result = await ctx.deleteMessage();
-  await ctx.answerOnCallback({
-    notification: result.success
-        ? 'Successfully removed message'
-        : 'Failed to remove message',
-  });
+  if(!result.success) {
+    return await ctx.reply('Failed to remove message')
+  }
+  await ctx.reply('Message removed');
 });
 
 /*  Callback keyboard  */

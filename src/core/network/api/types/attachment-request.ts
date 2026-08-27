@@ -1,6 +1,7 @@
 import { NullableObject } from '../../../helpers/types';
 
 import { Button } from './keyboard';
+import {User} from "./user";
 
 type MediaAttachmentRequestPayload = {
   token?: string;
@@ -34,10 +35,9 @@ export type FileAttachmentRequest = {
 export type ContactAttachmentRequest = {
   type: 'contact';
   payload: {
-    name: string | null;
-    contact_id?: number | null;
-    vcf_info?: string | null;
-    vcf_phone?: string | null;
+    vcf_info: string;
+    max_info: User;
+    hash: string;
   }
 };
 

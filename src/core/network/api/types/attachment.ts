@@ -49,8 +49,9 @@ export type StickerAttachment = {
 export type ContactAttachment = {
   type: 'contact';
   payload: {
-    vcf_info?: string | null;
-    tam_info?: User | null;
+    vcf_info: string;
+    max_info: User;
+    hash: string;
   }
 };
 
