@@ -209,6 +209,12 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     this.webhookIsStarted = true;
   };
 
+
+  /** @deprecated Используйте stopPolling. В ближайших версиях будет удалено. */
+  stop = () => {
+    this.stopPolling();
+  };
+
   stopPolling = () => {
     if (!this.pollingIsStarted) {
       debug('Long polling is not running');
