@@ -47,8 +47,13 @@ import {
   GetMessagesDTO, GetMessagesResponse, GetVideoInfoDTO, GetVideoInfoResponse,
   SendMessageDTO, SendMessageResponse,
 } from './messages/types';
-import type { GetUpdatesDTO, GetUpdatesResponse } from './subscriptions/types';
-import { GetUploadUrlResponse, GetUploadUrlDTO } from './uploads/types';
+import {
+  GetUpdatesDTO,
+  GetUpdatesResponse,
+  SubscribeOnUpdatesDTO, SubscribeOnUpdatesResponse, SubscriptionsResponseDTO,
+  UnsubscribeFromUpdatesDTO, UnsubscribeFromUpdatesResponse
+} from './subscriptions/types';
+import { GetUploadUrlDTO, GetUploadUrlResponse } from './uploads/types';
 
 export * from './bots/types';
 export * from './messages/types';
@@ -109,6 +114,10 @@ export type ApiMethods = {
     'videos/{video_token}': {
       req: GetVideoInfoDTO,
       res: GetVideoInfoResponse
+    },
+    'subscriptions': {
+      req: {},
+      res: SubscriptionsResponseDTO,
     }
   },
   POST: {
@@ -139,6 +148,10 @@ export type ApiMethods = {
     'chats/{chat_id}/members/admins': {
       req: AddChatAdminsDTO,
       res: AddChatAdminsResponse,
+    },
+    'subscriptions': {
+      req: SubscribeOnUpdatesDTO,
+      res: SubscribeOnUpdatesResponse,
     },
   },
   PATCH: {
@@ -185,6 +198,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: DeleteCommentDTO,
       res: DeleteCommentResponse,
+    }
+    subscriptions: {
+      req: UnsubscribeFromUpdatesDTO,
+      res: UnsubscribeFromUpdatesResponse,
     }
     'chats/{chat_id}/members/admins/{user_id}': {
       req: DeleteAdminChatMemberDTO,

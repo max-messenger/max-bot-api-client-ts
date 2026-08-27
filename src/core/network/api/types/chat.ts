@@ -1,5 +1,5 @@
-import {Message} from "./message";
-import {UserWithPhoto} from "./user";
+import { Message } from './message';
+import { UserWithPhoto } from './user';
 
 export type ChatType = 'dialog' | 'chat' | 'channel';
 

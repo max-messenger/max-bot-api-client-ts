@@ -8,6 +8,7 @@ import {
   BotInfo, ClientOptions, createClient, Update, UpdateType,
 } from './core/network/api';
 import { Polling } from './core/network/polling';
+import { Webhook, type WebhookOptions } from './core/network/webhook';
 import type { MaybePromise } from './core/types';
 
 
@@ -19,10 +20,26 @@ type BotConfig<Ctx extends Context> = {
   contextType: new (...args: ConstructorParameters<typeof Context>) => Ctx;
 };
 
-type LaunchOptions = Partial<{
+type PollingLaunchOptions = Partial<{
   allowedUpdates: UpdateType[],
   retry: boolean
 }>;
+
+type WebhookLaunchOptions = WebhookOptions & {
+  allowedUpdates?: UpdateType[];
+}
+
+type StartPollingConfig = {
+  mode: 'polling';
+  options?: PollingLaunchOptions;
+};
+
+type StartWebhookConfig = {
+  mode: 'webhook';
+  options: WebhookLaunchOptions;
+};
+
+type StartConfig = StartPollingConfig | StartWebhookConfig;
 
 const defaultConfig: BotConfig<Context> = {
   contextType: Context,
@@ -31,13 +48,19 @@ const defaultConfig: BotConfig<Context> = {
 export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
   api: Api;
 
+  private readonly token: string;
+
   private abortController: AbortController | undefined;
 
   public botInfo?: BotInfo;
 
   private polling?: Polling;
 
+  private webhook?: Webhook;
+
   private pollingIsStarted = false;
+
+  private webhookIsStarted = false;
 
   private config: BotConfig<Ctx>;
 
@@ -47,6 +70,7 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     // @ts-expect-error ожидаемое
     this.config = { ...defaultConfig, ...config };
     this.api = new Api(createClient(token, this.config.clientOptions));
+    this.token = token;
 
     debug('Created `Bot` instance');
   }
@@ -62,22 +86,49 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
     return this;
   }
 
-  start = async (options?: LaunchOptions) => {
+  start = async (config: StartConfig = { mode: 'polling' }) => {
+    try {
+      this.botInfo ??= await this.api.getMyInfo();
+    } catch (error) {
+      console.error('Failed to fetch bot info on startup', error);
+      throw error;
+    }
+
+    if (config.mode === 'polling') {
+      try {
+        await Webhook.clearSubscriptions(this.api)
+      } catch (error) {
+        debug('Failed to unsubscribe from webhook updates: %O', error);
+        throw error;
+      }
+
+      return this.startPolling(config.options);
+    }
+
+    if (config.mode === 'webhook') {
+      return this.startWebhook(config.options);
+    }
+  };
+
+  startPolling = async (options?: PollingLaunchOptions) => {
+    if (this.webhookIsStarted) {
+      debug('Long polling aborted: webhook updates handling already running');
+      return;
+    }
+
     if (this.pollingIsStarted) {
       debug('Long polling already running');
       return;
     }
 
     this.abortController = new AbortController();
-
     this.pollingIsStarted = true;
     let needsRetry = false;
 
     try {
-      this.botInfo ??= await this.api.getMyInfo();
       this.polling = new Polling(this.api, this.abortController, options?.allowedUpdates);
 
-      debug(`Starting @${this.botInfo.username}`);
+      debug(`Starting @${this.botInfo!.username} via Long Polling`);
       await this.polling.loop(this.handleUpdate);
     } catch (error) {
       console.error('Unhandled error while polling \n\r', error);
@@ -89,14 +140,83 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
     if (needsRetry) {
       debug('Retrying to restart long polling in %dms', POLLING_RESTART_ON_ERROR_TIMEOUT);
-      await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT, undefined, {
-        signal: this.abortController.signal,
-      });
-      void this.start(options);
+      try {
+        await setTimeout(POLLING_RESTART_ON_ERROR_TIMEOUT, undefined, {
+          signal: this.abortController.signal,
+        });
+        void this.startPolling(options);
+      } catch {
+        debug('Polling restart aborted via AbortSignal');
+      }
     }
   };
 
+  public webhookCallback(options: WebhookLaunchOptions) {
+    this.webhook ??= new Webhook(
+      this.api,
+      undefined,
+      this.token,
+      options,
+    );
+
+    return this.webhook.createCallback(this.handleUpdate);
+  }
+
+  public createWebhook = async (options: WebhookLaunchOptions) => {
+    const { allowedUpdates, ...rest } = options;
+
+    this.webhook ??= new Webhook(this.api, allowedUpdates, this.token, rest);
+
+    try {
+      await Webhook.clearSubscriptions(this.api, this.webhook.url)
+    } catch (error) {
+      debug('Failed to unsubscribe from webhook updates: %O', error);
+    }
+
+    await this.webhook.subscribe();
+
+    return this.webhook.createCallback(this.handleUpdate);
+  };
+
+  startWebhook = async (options: WebhookLaunchOptions) => {
+    if (this.webhookIsStarted) {
+      debug('Webhook already running');
+      return;
+    }
+
+    if (this.pollingIsStarted) {
+      debug('Webhook start aborted: long polling already running');
+      return;
+    }
+    debug(`Starting @${this.botInfo?.username} via Webhook`);
+
+    const { allowedUpdates, ...rest } = options
+
+    this.webhook ??= new Webhook(this.api, allowedUpdates, this.token, rest);
+
+    try {
+      await this.webhook.start(this.handleUpdate)
+    } catch (error) {
+      console.error('Unhandled error on webhook startup \n\r', error);
+      throw error;
+    }
+
+    try {
+      await Webhook.clearSubscriptions(this.api, this.webhook.url)
+    } catch (error) {
+      debug('Failed to unsubscribe from webhook updates: %O', error);
+    }
+
+    this.webhookIsStarted = true;
+  };
+
+
+  /** @deprecated Используйте stopPolling. В ближайших версиях будет удалено. */
   stop = () => {
+    this.stopPolling();
+  };
+
+  stopPolling = () => {
     if (!this.pollingIsStarted) {
       debug('Long polling is not running');
       return;
@@ -104,6 +224,17 @@ export class Bot<Ctx extends Context = Context> extends Composer<Ctx> {
 
     this.polling?.stop();
     this.pollingIsStarted = false;
+  };
+
+  stopWebhook = async () => {
+    if (!this.webhookIsStarted) {
+      debug('Webhook is not running');
+      return;
+    }
+
+    await this.webhook?.stop()
+    this.webhookIsStarted = false;
+    debug('Webhook stopped');
   };
 
   private handleUpdate = async (update: Update) => {

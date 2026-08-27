@@ -1,6 +1,7 @@
 // Стабильный публичный фасад: внутренние папки можно менять без изменения импортов SDK.
 export { Api } from './api';
 export { Bot } from './bot';
+export { Webhook, type WebhookOptions } from './core/network/webhook';
 
 // Базовые инструменты обработки событий.
 export { Composer } from './core/composer';

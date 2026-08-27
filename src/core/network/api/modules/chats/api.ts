@@ -1,7 +1,11 @@
 import { BaseApi } from '../../base-api';
 import type { FlattenReq } from '../types';
 import {
-  AddChatMembersDTO, AddChatMembersResponse,
+  AddChatAdminsDTO, AddChatAdminsResponse,
+  AddChatMembersDTO,
+  AddChatMembersResponse,
+  DeleteAdminChatMemberDTO,
+  DeleteAdminChatMemberResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
   GetAllChatsDTO,
@@ -15,15 +19,11 @@ import {
   GetChatMembershipResponse,
   GetChatMembersResponse,
   GetPinnedMessageDTO,
-  GetPinnedMessageResponse,
-  LeaveChatDTO,
-  LeaveChatResponse,
+  GetPinnedMessageResponse, LeaveChatDTO, LeaveChatResponse,
   PinMessageDTO,
   PinMessageResponse, RemoveChatMemberDTO, RemoveChatMemberResponse,
   SendActionDTO,
-  SendActionResponse, AddChatAdminsDTO, AddChatAdminsResponse,
-  UnpinMessageDTO,
-  UnpinMessageResponse, DeleteAdminChatMemberDTO, DeleteAdminChatMemberResponse,
+  SendActionResponse, UnpinMessageDTO, UnpinMessageResponse,
 } from './types';
 
 export class ChatsApi extends BaseApi {

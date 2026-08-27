@@ -1,14 +1,25 @@
-import {ChatAdmin, GetMessagesExtra, RawApi, SenderAction} from './core/network/api';
 import type {
-  AnswerOnCallbackExtra, Client, DeleteMessageExtra,
-  EditMessageExtra, SendMessageExtra, BotCommand,
-  FlattenReq, GetUpdatesDTO, UpdateType,
+  AnswerOnCallbackExtra,
+  BotCommand,
+  Client,
+  DeleteMessageExtra,
+  EditMessageExtra,
+  FlattenReq,
+  GetUpdatesDTO,
+  SendMessageExtra,
+  Subscription,
+  UpdateType,
 } from './core/network/api';
+import { ChatAdmin, GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
 import {
-  EditChatExtra, EditCommentExtra,
+  AddChatAdminsExtra,
+  EditChatExtra,
+  EditCommentExtra,
   GetAllChatsExtra,
-  GetChatMembersExtra, GetCommentsExtra,
-  PinMessageExtra, SendCommentExtra, AddChatAdminsExtra,
+  GetChatMembersExtra,
+  GetCommentsExtra,
+  PinMessageExtra,
+  SendCommentExtra,
 } from './core/network/api/modules';
 import type { MaybeArray } from './core/types';
 import {
@@ -19,10 +30,10 @@ import {
 } from './helpers/attachments';
 import { Upload } from './helpers/upload';
 import type {
+  UploadAudioOptions,
   UploadFileOptions,
   UploadImageOptions,
   UploadVideoOptions,
-  UploadAudioOptions,
 } from './helpers/upload';
 
 export class Api {
@@ -242,7 +253,8 @@ export class Api {
     commentId: string,
   ) => {
     return this.raw.comments.getById({
-      messageId, commentId,
+      messageId,
+      commentId,
     });
   };
 
@@ -275,4 +287,24 @@ export class Api {
       messageId, comment_id,
     });
   };
+
+  getSubscriptions = async (): Promise<Subscription[]> => {
+    const response = await this.raw.subscriptions.getSubscriptions();
+
+    return response.subscriptions?.map<Subscription>(({ update_types, ...rest }) => (
+      { ...rest, updateTypes: update_types }
+    ))
+  }
+
+  subscribe = async (
+    url: string,
+    secret?: string,
+    update_types?: UpdateType[]
+  ) => {
+    return this.raw.subscriptions.subscribe({ url, secret, update_types });
+  }
+
+  unsubscribe = async (url: string) => {
+    return this.raw.subscriptions.unsubscribe({ url });
+  }
 }

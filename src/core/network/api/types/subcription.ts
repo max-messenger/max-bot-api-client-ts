@@ -1,3 +1,4 @@
+import { SubscriptionDTO } from '../modules';
 import { Message } from './message';
 import { User, UserLocale } from './user';
 
@@ -167,3 +168,7 @@ export type UpdateType = Update['update_type'];
 export type FilteredUpdate<Type extends UpdateType> = Type extends keyof UpdateMap
   ? UpdateMap[Type]
   : never;
+
+export type Subscription = Omit<SubscriptionDTO, 'update_types'> & {
+  updateTypes: SubscriptionDTO['update_types'];
+}

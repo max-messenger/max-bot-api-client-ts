@@ -34,6 +34,11 @@ export default tseslint.config(
         'groups': ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }],
+      'sort-imports': ['error', {
+        'ignoreDeclarationSort': true,
+        'ignoreMemberSort': false,
+        'ignoreCase': true
+      }],
       'import-x/extensions': 'off',
       'import-x/prefer-default-export': 'off',
       'no-await-in-loop': 'off',
@@ -42,6 +47,8 @@ export default tseslint.config(
       'no-restricted-syntax': 'off',
       'class-methods-use-this': 'off',
       'max-classes-per-file': 'off',
+      'object-curly-spacing': ['error', 'always'],
+      'quotes': ['error', 'single'],
       'no-underscore-dangle': ['error', { 'allowAfterThis': true }],
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',

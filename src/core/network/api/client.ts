@@ -24,12 +24,20 @@ type CallOptions = {
   options: ReqOptions;
 };
 
+const SECRET_KEYS = new Set(['secret'])
+
+const sanitizeJsonFieldCallback = (key: string, value: unknown)=> {
+  if (SECRET_KEYS.has(key)) return '[HIDDEN]';
+
+  return value;
+}
+
 export const createClient = (token: string, options: ClientOptions = {}) => {
   const { baseUrl } = { ...defaultOptions, ...options };
 
   const call = async ({ method, options: callOptions }: CallOptions) => {
     const httpMethod = callOptions.method || 'GET';
-    debug(`Call method ${httpMethod} /${method}`, JSON.stringify(callOptions, null, 2));
+    debug(`Call method ${httpMethod} /${method}`, JSON.stringify(callOptions, sanitizeJsonFieldCallback, 2));
 
     if (!token) {
       return {
