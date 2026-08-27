@@ -85,20 +85,4 @@ bot.on('message_created', async (ctx, next) => {
   return ctx.reply(`Your name: ${ctx.contactInfo.fullName}\nYour phone: ${ctx.contactInfo.tel}`);
 });
 
-/*  CreateChat keyboard  */
-
-bot.command(/createChat(.+)?/, async (ctx) => {
-  const chatTitle = ctx.match?.[1]?.trim();
-  if (!chatTitle) {
-    return ctx.reply('Enter chat title after command');
-  }
-  return ctx.reply('Create chat keyboard', {
-    attachments: [
-      Keyboard.inlineKeyboard([[
-        Keyboard.button.chat(`Create chat "${chatTitle}"`, chatTitle),
-      ]]),
-    ],
-  });
-});
-
 bot.start();
