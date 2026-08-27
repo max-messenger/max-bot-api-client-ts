@@ -43,8 +43,13 @@ import type {
   GetMessagesDTO, GetMessagesResponse,
   SendMessageDTO, SendMessageResponse,
 } from './messages/types';
-import type { GetUpdatesDTO, GetUpdatesResponse } from './subscriptions/types';
-import { GetUploadUrlResponse, GetUploadUrlDTO } from './uploads/types';
+import {
+  GetUpdatesDTO,
+  GetUpdatesResponse,
+  SubscribeOnUpdatesDTO, SubscribeOnUpdatesResponse, SubscriptionsResponseDTO,
+  UnsubscribeFromUpdatesDTO, UnsubscribeFromUpdatesResponse
+} from './subscriptions/types';
+import { GetUploadUrlDTO, GetUploadUrlResponse } from './uploads/types';
 
 export * from './bots/types';
 export * from './messages/types';
@@ -101,6 +106,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments/{commentId}': {
       req: GetCommentDTO,
       res: GetCommentResponse
+    },
+    'subscriptions': {
+      req: {},
+      res: SubscriptionsResponseDTO,
     }
   },
   POST: {
@@ -127,6 +136,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: SendCommentDTO,
       res: SendCommentResponse,
+    }
+    'subscriptions': {
+      req: SubscribeOnUpdatesDTO,
+      res: SubscribeOnUpdatesResponse,
     }
   },
   PATCH: {
@@ -173,6 +186,10 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: DeleteCommentDTO,
       res: DeleteCommentResponse,
+    }
+    subscriptions: {
+      req: UnsubscribeFromUpdatesDTO,
+      res: UnsubscribeFromUpdatesResponse,
     }
   }
 };

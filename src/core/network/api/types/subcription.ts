@@ -1,3 +1,4 @@
+import { SubscriptionDTO } from '../modules';
 import { Chat } from './chat';
 import { ConstructedMessage, Message } from './message';
 import { User, UserLocale } from './user';
@@ -139,3 +140,7 @@ export type Update =
   | MessageConstructionRequestUpdate
   | MessageConstructedUpdate
   | MessageChatCreatedUpdate;
+
+export type Subscription = Omit<SubscriptionDTO, 'update_types'> & {
+  updateTypes: SubscriptionDTO['update_types'];
+}

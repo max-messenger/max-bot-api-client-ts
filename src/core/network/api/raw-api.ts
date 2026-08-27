@@ -1,6 +1,12 @@
 import type { Client } from './client';
 import {
-  BaseApi, BotsApi, ChatsApi, MessagesApi, SubscriptionsApi, UploadsApi, CommentsApi,
+  BaseApi,
+  BotsApi,
+  ChatsApi,
+  CommentsApi,
+  MessagesApi,
+  SubscriptionsApi,
+  UploadsApi,
 } from './modules';
 
 export class RawApi extends BaseApi {
@@ -20,7 +26,7 @@ export class RawApi extends BaseApi {
     return (this._chats ??= new ChatsApi(this.client));
   }
 
-  private _bots?: BotsApi;
+  private _bots?: BotsApi; 
 
   get bots() {
     return (this._bots ??= new BotsApi(this.client));
