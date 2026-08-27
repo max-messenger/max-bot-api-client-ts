@@ -134,7 +134,7 @@ export class Webhook {
       });
 
       this.server!.once('error', (error) => {
-        debug('Standalone Webhook server start failed %d', this.port);
+        debug('Standalone Webhook server start failed on port %d', this.port);
         reject(error);
       });
     });
