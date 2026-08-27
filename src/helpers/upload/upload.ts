@@ -3,20 +3,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import FormDataStream from 'form-data';
 
-import { type Api } from '../../../api';
+import { type Api } from '../../api';
 import {
   StreamUploadClient,
   type StreamUploadEvent,
   type StreamUploadProgressCallback,
   type UploadType,
-} from '../../network/api';
+} from '../../core/network/api';
 import type {
   AudioUploadResult,
   DefaultOptions,
   FileSource,
   FileUploadResult,
   ImageUploadResult,
-  UploadAudioOptions, 
+  UploadAudioOptions,
   UploadFile,
   UploadFileOptions,
   UploadFromBufferParams,

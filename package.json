@@ -31,8 +31,11 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "lint": "eslint ."
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc",
+    "lint": "eslint .",
+    "test:examples": "tsc -p tsconfig.examples.json",
+    "test": "npm run build && npm run test:examples && node --test tests/*.test.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
