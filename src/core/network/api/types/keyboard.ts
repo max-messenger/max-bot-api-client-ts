@@ -10,6 +10,12 @@ export type LinkButton = {
   url: string;
 };
 
+export type ClipboardButton = {
+  type: 'clipboard',
+  text: string
+  payload: string
+}
+
 export type RequestContactButton = {
   type: 'request_contact';
   text: string;
@@ -21,14 +27,10 @@ export type RequestGeoLocationButton = {
   quick?: boolean;
 };
 
-export type ChatButton = {
-  type: 'chat',
+export type MessageButton = {
+  type: 'message';
   text: string;
-  chat_title: string;
-  chat_description?: string | null;
-  start_payload?: string | null;
-  uuid?: string | null;
-};
+}
 
 export type OpenAppButton = {
   type: 'open_app';
@@ -43,5 +45,6 @@ export type Button =
   | LinkButton
   | RequestContactButton
   | RequestGeoLocationButton
-  | ChatButton
-  | OpenAppButton;
+  | OpenAppButton
+  | ClipboardButton
+  | MessageButton

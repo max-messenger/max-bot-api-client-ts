@@ -1,10 +1,20 @@
 import vCard from 'vcf';
 import { type Api } from '../api';
-import type {
-  AnswerOnCallbackExtra, BotInfo, BotStartedUpdate, Chat,
-  EditMessageExtra, FilteredUpdate, GetMessagesExtra, Message,
-  MessageCallbackUpdate, SenderAction, SendMessageExtra,
-  Update, UpdateType, User,
+import {
+  AnswerOnCallbackExtra,
+  BotInfo,
+  BotStartedUpdate,
+  Chat, ChatAdmin,
+  EditMessageExtra,
+  FilteredUpdate,
+  GetMessagesExtra,
+  Message,
+  MessageCallbackUpdate,
+  SenderAction,
+  SendMessageExtra,
+  Update,
+  UpdateType,
+  User,
 } from './network/api';
 
 import {
@@ -12,7 +22,7 @@ import {
   GetAllChatsExtra,
   GetChatMembersExtra,
   GetCommentsExtra,
-  PinMessageExtra,
+  PinMessageExtra, AddChatAdminsExtra,
 } from './network/api/modules';
 import type { Guard, Guarded, MaybeArray } from './types';
 
@@ -233,6 +243,10 @@ export class Context<U extends Update = Update> {
     return this.api.deleteMessage(this.messageId);
   }
 
+  async getVideoInfo(videoToken: string) {
+    return this.api.getVideoInfo(videoToken);
+  }
+
   async answerOnCallback(extra: AnswerOnCallbackExtra) {
     this.assert(this.callback, 'answerOnCallback');
     return this.api.answerOnCallback(this.callback.callback_id, extra);
@@ -246,6 +260,19 @@ export class Context<U extends Update = Update> {
   async getChatAdmins() {
     this.assert(this.chatId, 'getChatAdmins');
     return this.api.getChatAdmins(this.chatId);
+  }
+
+  async addChatAdmins(
+    admins: ChatAdmin[],
+    extra?: AddChatAdminsExtra
+  ) {
+    this.assert(this.chatId, 'addChatAdmins');
+    return this.api.addChatAdmins(this.chatId, admins, extra);
+  }
+
+  async removeChatAdmin(userId: number) {
+    this.assert(this.chatId, 'removeChatAdmin');
+    return this.api.removeChatAdmin(this.chatId, userId);
   }
 
   async addChatMembers(userIds: number[]) {
@@ -305,10 +332,6 @@ const getChatId = (update: Update) => {
   }
   if ('message' in update && update.message && 'recipient' in update.message) {
     return update.message.recipient.chat_id;
-  }
-
-  if ('chat' in update) {
-    return update.chat.chat_id;
   }
 
   return undefined;

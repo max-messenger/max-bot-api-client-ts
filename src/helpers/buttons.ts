@@ -1,7 +1,8 @@
 import {
   Button,
-  CallbackButton, ChatButton,
-  LinkButton,
+  CallbackButton,
+  ClipboardButton,
+  LinkButton, MessageButton,
   OpenAppButton,
   RequestContactButton,
   RequestGeoLocationButton,
@@ -18,6 +19,15 @@ export const callback = (
 ): CallbackButton => {
   return {
     type: 'callback', text, payload,
+  };
+};
+
+export const clipboard = (
+  text: string,
+  payload: string,
+): ClipboardButton => {
+  return {
+    type: 'clipboard', text, payload,
   };
 };
 
@@ -42,15 +52,14 @@ export const requestGeoLocation = (
   };
 };
 
-export const chat = (
+export const message = (
   text: string,
-  chatTitle: string,
-  extra?: MakeExtra<ChatButton, 'chat_title'>,
-): ChatButton => {
+): MessageButton => {
   return {
-    type: 'chat', text, chat_title: chatTitle, ...extra,
+    type: 'message', text,
   };
 };
+
 
 export const openApp = (
   text: string,

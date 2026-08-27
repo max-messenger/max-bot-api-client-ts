@@ -1,5 +1,5 @@
 import {
-  ActionResponse, AttachmentRequest, Message, MessageLinkType,
+  ActionResponse, AttachmentRequest, Message, MessageLinkType, MessageTextFormat,
 } from '../../types';
 import type { FlattenReq } from '../types';
 
@@ -40,7 +40,7 @@ export type SendMessageDTO = {
     attachments?: AttachmentRequest[] | null;
     link?: { type: MessageLinkType; mid: string } | null;
     notify?: boolean;
-    format?: 'markdown' | 'html' | null;
+    format?: MessageTextFormat | null;
   }
 };
 
@@ -64,6 +64,37 @@ export type DeleteMessageExtra = Omit<FlattenReq<DeleteMessageDTO>, 'message_id'
 
 export type DeleteMessageResponse = ActionResponse;
 
+export type VideoUrls = {
+  mp4_1080?: string | null;
+  mp4_720?: string | null;
+  mp4_480?: string | null;
+  mp4_360?: string | null;
+  mp4_240?: string | null;
+  mp4_144?: string | null;
+  hls?: string | null;
+}
+
+export type PhotoAttachmentPayload = {
+  photo_id: number;
+  token: string;
+  url: string;
+}
+
+export type GetVideoInfoDTO = {
+  query: {
+    video_token: string;
+  }
+}
+
+export type GetVideoInfoResponse = {
+  token: string;
+  urls?: VideoUrls | null;
+  thumbnail?: PhotoAttachmentPayload | null;
+  width: number
+  height: number
+  duration: number
+}
+
 export type EditMessageDTO = {
   query: {
     message_id: string
@@ -81,7 +112,6 @@ export type AnswerOnCallbackDTO = {
   },
   body: {
     message?: SendMessageDTO['body'] | null,
-    notification?: string | null
   }
 };
 

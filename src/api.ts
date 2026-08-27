@@ -10,8 +10,9 @@ import type {
   Subscription,
   UpdateType,
 } from './core/network/api';
-import { GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
-import type {
+import { ChatAdmin, GetMessagesExtra, RawApi, SenderAction } from './core/network/api';
+import {
+  AddChatAdminsExtra,
   EditChatExtra,
   EditCommentExtra,
   GetAllChatsExtra,
@@ -126,6 +127,10 @@ export class Api {
     return this.raw.messages.delete({ message_id: messageId, ...extra });
   };
 
+  getVideoInfo = async (videoToken: string) => {
+    return this.raw.messages.getVideoInfo({ video_token: videoToken });
+  }
+
   answerOnCallback = async (
     callbackId: string,
     extra?: AnswerOnCallbackExtra,
@@ -140,6 +145,18 @@ export class Api {
   getChatAdmins = (chatId: number) => {
     return this.raw.chats.getChatAdmins({ chat_id: chatId });
   };
+
+  addChatAdmins = async (
+    chatId: number,
+    admins: ChatAdmin[],
+    extra?: AddChatAdminsExtra
+  ) => {
+    return this.raw.chats.addChatAdmins({ chat_id: chatId, admins, ...extra });
+  }
+
+  removeChatAdmin = async (chatId: number, userId: number) => {
+    return this.raw.chats.deleteChatAdmin({ chat_id: chatId, user_id: userId });
+  }
 
   addChatMembers = (chatId: number, userIds: number[]) => {
     return this.raw.chats.addChatMembers({
@@ -252,13 +269,13 @@ export class Api {
   };
 
   editComment = async (
-    messageId: string,
+    message_id: string,
     comment_id: string,
     text: string,
     extra: EditCommentExtra,
   ) => {
     return this.raw.comments.edit({
-      messageId, text, comment_id, ...extra,
+      message_id, text, comment_id, ...extra,
     });
   };
 

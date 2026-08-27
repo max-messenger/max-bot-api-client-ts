@@ -3,11 +3,13 @@ import createDebug from 'debug';
 import { BaseApi } from '../../base-api';
 import { MaxError } from '../../error';
 import {
+  type AnswerOnCallbackDTO,
+  EditMessageDTO,
   FlattenReq,
   GetMessageDTO,
   GetMessageResponse,
   GetMessagesDTO,
-  GetMessagesResponse,
+  GetMessagesResponse, GetVideoInfoDTO, GetVideoInfoResponse,
   SendMessageOptions,
   SendMessageResponse,
 } from '../types';
@@ -78,7 +80,7 @@ export class MessagesApi extends BaseApi {
     });
   };
 
-  edit = async ({ message_id, ...body }) => {
+  edit = async ({ message_id, ...body }: FlattenReq<EditMessageDTO>) => {
     return this._put('messages', {
       query: { message_id },
       body,
@@ -91,7 +93,13 @@ export class MessagesApi extends BaseApi {
     });
   };
 
-  answerOnCallback = async ({ callback_id, ...body }) => {
+  getVideoInfo = async ({ ...query }: FlattenReq<GetVideoInfoDTO>): Promise<GetVideoInfoResponse> => {
+    return this._get('videos/{video_token}', {
+      query,
+    });
+  };
+
+  answerOnCallback = async ({ callback_id, ...body }: FlattenReq<AnswerOnCallbackDTO>) => {
     return this._post('answers', {
       query: { callback_id },
       body,

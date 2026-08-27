@@ -1,6 +1,6 @@
 import { ReqOptions } from '../client';
 import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
-import type {
+import {
   AddChatMembersDTO,
   AddChatMembersResponse,
   EditChatInfoDTO,
@@ -18,15 +18,19 @@ import type {
   GetPinnedMessageDTO,
   GetPinnedMessageResponse,
   LeaveChatDTO,
-  LeaveChatResponse, 
+  LeaveChatResponse,
   PinMessageDTO,
   PinMessageResponse,
   RemoveChatMemberDTO,
   RemoveChatMemberResponse,
   SendActionDTO,
   SendActionResponse,
+  AddChatAdminsDTO,
+  AddChatAdminsResponse,
   UnpinMessageDTO,
   UnpinMessageResponse,
+  DeleteAdminChatMemberDTO,
+  DeleteAdminChatMemberResponse,
 } from './chats/types';
 import {
   DeleteCommentDTO, DeleteCommentResponse,
@@ -35,12 +39,12 @@ import {
   GetCommentsDTO, GetCommentsResponse,
   SendCommentDTO, SendCommentResponse,
 } from './comments/types';
-import type {
+import {
   AnswerOnCallbackDTO, AnswerOnCallbackResponse,
   DeleteMessageDTO, DeleteMessageResponse,
   EditMessageDTO, EditMessageResponse,
   GetMessageDTO, GetMessageResponse,
-  GetMessagesDTO, GetMessagesResponse,
+  GetMessagesDTO, GetMessagesResponse, GetVideoInfoDTO, GetVideoInfoResponse,
   SendMessageDTO, SendMessageResponse,
 } from './messages/types';
 import {
@@ -107,6 +111,10 @@ export type ApiMethods = {
       req: GetCommentDTO,
       res: GetCommentResponse
     },
+    'videos/{video_token}': {
+      req: GetVideoInfoDTO,
+      res: GetVideoInfoResponse
+    },
     'subscriptions': {
       req: {},
       res: SubscriptionsResponseDTO,
@@ -136,11 +144,15 @@ export type ApiMethods = {
     'messages/{messageId}/comments': {
       req: SendCommentDTO,
       res: SendCommentResponse,
-    }
+    },
+    'chats/{chat_id}/members/admins': {
+      req: AddChatAdminsDTO,
+      res: AddChatAdminsResponse,
+    },
     'subscriptions': {
       req: SubscribeOnUpdatesDTO,
       res: SubscribeOnUpdatesResponse,
-    }
+    },
   },
   PATCH: {
     'me/commands': {
@@ -190,6 +202,10 @@ export type ApiMethods = {
     subscriptions: {
       req: UnsubscribeFromUpdatesDTO,
       res: UnsubscribeFromUpdatesResponse,
+    }
+    'chats/{chat_id}/members/admins/{user_id}': {
+      req: DeleteAdminChatMemberDTO,
+      res: DeleteAdminChatMemberResponse,
     }
   }
 };
