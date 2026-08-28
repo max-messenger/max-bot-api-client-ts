@@ -18,11 +18,11 @@ import {
 } from './network/api';
 
 import {
+  AddChatAdminsExtra,
   EditChatExtra,
   GetAllChatsExtra,
   GetChatMembersExtra,
-  GetCommentsExtra,
-  PinMessageExtra, AddChatAdminsExtra,
+  GetCommentsExtra, PinMessageExtra,
 } from './network/api/modules';
 import type { Guard, Guarded, MaybeArray } from './types';
 

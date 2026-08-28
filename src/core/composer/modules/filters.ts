@@ -1,6 +1,6 @@
 import type {
-  MessageBody, MessageCallbackUpdate, MessageCreatedUpdate,
-  MessageEditedUpdate, FilteredUpdate, Update, UpdateType,
+  FilteredUpdate, MessageBody, MessageCallbackUpdate,
+  MessageCreatedUpdate, MessageEditedUpdate, Update, UpdateType,
 } from '../../network/api';
 import type { Guard } from '../../types';
 

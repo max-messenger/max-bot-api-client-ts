@@ -1,0 +1,48 @@
+{
+  "$schema": "https://unpkg.com/release-it@latest/schema/release-it.json",
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "✨ Новые возможности" },
+          { "type": "feature", "section": "✨ Новые возможности" },
+          { "type": "fix", "section": "🐛 Исправления" },
+          { "type": "perf", "section": "⚡️ Производительность" },
+          { "type": "refactor", "section": "♻️ Рефакторинг" },
+          { "type": "revert", "section": "⏪️ Откаты изменений" },
+          { "type": "docs", "section": "📚 Документация" },
+          { "type": "style", "section": "💎 Стили" },
+          { "type": "chore", "section": "🛠 Прочее", "hidden": false },
+          { "type": "build", "section": "📦 Сборка", "hidden": false },
+          { "type": "ci", "section": "👷 CI", "hidden": false }
+        ]
+      },
+      "header": "# Changelog\n\nВсе заметные изменения этого проекта задокументированы в этом файле.\nФормат основан на [Conventional Commits](https://conventionalcommits.org).",
+      "writerOpts": {
+        "commitsSort": ["subject", "scope"]
+      }
+    }
+  },
+  "git": {
+    "requireCleanWorkingDir": true,
+    "requireBranch": "main",
+    "requireUpstream": true,
+    "commitMessage": "chore(release): ${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release ${version}"
+  },
+  "npm": {
+    "publish": true,
+    "skipChecks": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}"
+  },
+  "hooks": {
+    "before:init": "npm run lint",
+    "after:bump": "npm run build"
+  }
+}
