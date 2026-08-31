@@ -1,7 +1,7 @@
 import { NullableObject } from '../../../types';
 
 import { Button } from './keyboard';
-import {User} from "./user";
+import { User } from './user';
 
 type MediaAttachmentRequestPayload = {
   token?: string;

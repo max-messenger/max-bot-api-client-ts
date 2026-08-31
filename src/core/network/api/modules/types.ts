@@ -1,8 +1,12 @@
 import { ReqOptions } from '../client';
 import type { EditMyCommandsDTO, EditMyCommandsResponse, GetMyInfoResponse } from './bots/types';
 import {
+  AddChatAdminsDTO,
+  AddChatAdminsResponse,
   AddChatMembersDTO,
   AddChatMembersResponse,
+  DeleteAdminChatMemberDTO,
+  DeleteAdminChatMemberResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
   GetAllChatsDTO,
@@ -25,12 +29,8 @@ import {
   RemoveChatMemberResponse,
   SendActionDTO,
   SendActionResponse,
-  AddChatAdminsDTO,
-  AddChatAdminsResponse,
   UnpinMessageDTO,
   UnpinMessageResponse,
-  DeleteAdminChatMemberDTO,
-  DeleteAdminChatMemberResponse,
 } from './chats/types';
 import {
   DeleteCommentDTO, DeleteCommentResponse,
