@@ -7,7 +7,12 @@ const defaultOptions = {
   baseUrl: 'https://platform-api2.max.ru',
 };
 
-export type ClientOptions = Partial<typeof defaultOptions>;
+export type FetchFn = typeof globalThis.fetch;
+
+export type ClientOptions = {
+  baseUrl?: string;
+  fetch?: FetchFn;
+};
 
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -33,7 +38,10 @@ const sanitizeJsonFieldCallback = (key: string, value: unknown)=> {
 }
 
 export const createClient = (token: string, options: ClientOptions = {}) => {
-  const { baseUrl } = { ...defaultOptions, ...options };
+  const {
+    baseUrl = defaultOptions.baseUrl,
+    fetch: fetchFn = globalThis.fetch,
+  } = options;
 
   const call = async ({ method, options: callOptions }: CallOptions) => {
     const httpMethod = callOptions.method || 'GET';
@@ -63,7 +71,7 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
       init.signal = callOptions.signal;
     }
 
-    const res = await fetch(url.href, init);
+    const res = await fetchFn(url.href, init);
 
     if (res.status === 401) {
       return {

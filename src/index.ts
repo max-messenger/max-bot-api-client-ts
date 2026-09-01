@@ -45,3 +45,4 @@ export {
   VideoAttachment, fmt,
 } from './helpers';
 export { MaxError } from './core/network/api';
+export type { ClientOptions, FetchFn } from './core/network/api';
