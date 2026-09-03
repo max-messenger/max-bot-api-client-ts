@@ -26,6 +26,13 @@ await ctx.reply('', { attachments: [file.toJson()] });
 - `uploadAudio`
 - `uploadFile`
 
+> [!NOTE]
+> Если при создании `Bot` передан `clientOptions.fetch`, он используется только
+> для запросов Bot API. Он покрывает получение upload URL через `/uploads`, но
+> не саму загрузку содержимого файла на этот URL. Фактическая загрузка
+> выполняется через `StreamUploadClient` и отдельный транспорт на базе
+> `http`/`https.request`.
+
 Эти методы возвращают экземпляр класса `Attachment`.
 
 ```typescript

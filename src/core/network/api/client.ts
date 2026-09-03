@@ -11,6 +11,16 @@ export type FetchFn = typeof globalThis.fetch;
 
 export type ClientOptions = {
   baseUrl?: string;
+  /**
+   * Custom fetch implementation used by the Bot API client.
+   *
+   * Applies only to Bot API requests, such as `/me`, `/updates`,
+   * `/messages`, and the request that obtains an upload URL via `/uploads`.
+   *
+   * Does not affect the subsequent file content upload to the returned upload URL,
+   * which is performed by `StreamUploadClient` using a separate
+   * `http`/`https.request`-based transport.
+   */
   fetch?: FetchFn;
 };
 
