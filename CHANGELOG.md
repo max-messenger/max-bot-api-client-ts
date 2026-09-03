@@ -5,9 +5,13 @@
 
 ## [0.3.1](https://github.com/max-messenger/max-bot-api-client-ts/compare/v0.3.0...v0.3.1) (2026-09-03)
 
+### ✨ Новые возможности
+
+* Добавлена возможность передачи кастомной fetch-функции в api client
+
 ### 📚 Документация
 
-* задокументировать ограничения clientOptions.fetch ([bc71318](https://github.com/max-messenger/max-bot-api-client-ts/commit/bc7131827a744c1edf69c3ca00309ef49e65d180))
+* задокументированы ограничения clientOptions.fetch ([bc71318](https://github.com/max-messenger/max-bot-api-client-ts/commit/bc7131827a744c1edf69c3ca00309ef49e65d180))
 
 ## [0.3.0](https://github.com/max-messenger/max-bot-api-client-ts/compare/v0.2.5...v0.3.0) (2026-08-31)
 
