@@ -60,6 +60,30 @@ bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
 bot.start();
 ```
 
+### Пользовательский fetch
+
+Можно передать собственную реализацию `fetch` для запросов Bot API:
+
+```typescript
+const bot = new Bot(token, {
+  clientOptions: {
+    fetch: customFetch,
+  },
+});
+```
+
+`clientOptions.fetch` используется только API-клиентом Bot API. Через него
+проходят обычные API-запросы, например `/me`, `/updates`, `/messages`, а также
+запрос за upload URL через `/uploads`.
+
+Эта настройка не влияет на загрузку содержимого файлов через
+`StreamUploadClient`: после получения upload URL от Bot API фактическая загрузка
+локального файла на этот URL выполняется отдельным транспортом на базе
+`http`/`https.request`.
+
+Поэтому `clientOptions.fetch` не следует считать полноценной поддержкой proxy
+для всего исходящего трафика SDK.
+
 ### Обработка ошибок
 Если во время обработки события произойдёт ошибка, Bot вызовет метод `bot.handleError`. По умолчанию `bot.handleError` просто завершает работу программы, но вы можете переопределить это поведение, используя `bot.catch`.
 
