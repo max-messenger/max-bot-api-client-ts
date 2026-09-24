@@ -10,7 +10,7 @@ if (!domain) throw new Error('Domain not provided');
 const bot = new Bot(token);
 
 bot.on('message_created', (ctx) =>
-  ctx.reply(ctx.message.body.text ?? 'New message')
+  ctx.reply(ctx.message?.body.text ?? 'New message')
 );
 
 const path = `/webhook/${Webhook.generateTokenRelatedHash(token)}`;
@@ -19,7 +19,8 @@ const secret = process.env.WEBHOOK_SECRET;
 const handleUpdate = bot.webhookCallback({
   domain,
   path,
-  secret,
+  // secret опционален — передаём его, только если он задан.
+  ...(secret ? { secret } : {}),
 });
 
 createServer(handleUpdate).listen(3000, async () => {
