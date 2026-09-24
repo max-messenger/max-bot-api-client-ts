@@ -270,6 +270,10 @@ export class Context<U extends Update = Update> {
     return this.api.removeChatAdmin(this.chatId, userId);
   }
 
+  /**
+   * @deprecated Эндпоинт `POST /chats/{chat_id}/members` удалён из MAX Bot API 30 сентября 2026
+   * (ограничен с 9 сентября 2026) — см. https://dev.max.ru/docs-api.
+   */
   async addChatMembers(userIds: number[]) {
     this.assert(this.chatId, 'addChatMembers');
     return this.api.addChatMembers(this.chatId, userIds);
