@@ -56,7 +56,8 @@ export class Composer<Ctx extends Context> implements MiddlewareObj<Ctx> {
     const handler = Composer.compose(middlewares);
 
     return this.use(this.filter(filter, (ctx, next) => {
-      const text = extractTextFromMessage(ctx.message, ctx.myId)!;
+      // text может отсутствовать или быть null — команда в таком сообщении не встретится.
+      const text = extractTextFromMessage(ctx.message, ctx.myId) ?? '';
       // Команда обязательно начинается с `/`, поэтому обычный текст не совпадёт с ней.
       if (!text.startsWith('/')) return next();
 
@@ -84,7 +85,7 @@ export class Composer<Ctx extends Context> implements MiddlewareObj<Ctx> {
     const handler = Composer.compose(middlewares);
 
     return this.use(this.filter(filter, (ctx, next) => {
-      const text = extractTextFromMessage(ctx.message, ctx.myId)!;
+      const text = extractTextFromMessage(ctx.message, ctx.myId) ?? '';
 
       for (const trigger of normalizedTriggers) {
         const match = trigger(text, ctx);

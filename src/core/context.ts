@@ -347,7 +347,8 @@ const getChat = (update: Update) => {
 
 const getMessage = (update: Update) => {
   if ('message' in update) {
-    return update.message;
+    // Сервер может прислать message_created без message (см. issue #250) — считаем её отсутствующей.
+    return update.message ?? undefined;
   }
   return undefined;
 };

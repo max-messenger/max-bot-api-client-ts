@@ -26,11 +26,13 @@ const matches = (filter: UpdateFilter, update: Update) => {
 
 export const createdMessageBodyHas = <Keys extends Array<keyof MessageBody>>(...keys: Keys) => {
   return (update: Update): update is MessageCreatedUpdate => {
-    // Поле со значением undefined считаем отсутствующим.
+    // Поле со значением undefined или null считаем отсутствующим.
     if (update.update_type !== 'message_created') return false;
+    // Сервер может прислать message_created без объекта message (см. issue #250).
+    if (!update.message) return false;
     for (const key of keys) {
       if (!(key in update.message.body)) return false;
-      if (update.message.body[key] === undefined) return false;
+      if (update.message.body[key] == null) return false;
     }
     return true;
   };
