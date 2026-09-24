@@ -8,8 +8,6 @@ import {
   DeleteAdminChatMemberResponse,
   EditChatInfoDTO,
   EditChatInfoResponse,
-  GetAllChatsDTO,
-  GetAllChatsResponse,
   GetChatAdminsDTO,
   GetChatAdminsResponse,
   GetChatByIdDTO,
@@ -27,12 +25,6 @@ import {
 } from './types';
 
 export class ChatsApi extends BaseApi {
-  async getAll({ ...query }: FlattenReq<GetAllChatsDTO>): Promise<GetAllChatsResponse> {
-    return this._get('chats', {
-      query,
-    });
-  }
-
   async getById({ chat_id }: FlattenReq<GetChatByIdDTO>): Promise<GetChatByIdResponse> {
     return this._get('chats/{chat_id}', {
       path: { chat_id },
@@ -116,6 +108,10 @@ export class ChatsApi extends BaseApi {
     });
   }
 
+  /**
+   * @deprecated Эндпоинт `POST /chats/{chat_id}/members` удалён из MAX Bot API 30 сентября 2026
+   * (ограничен с 9 сентября 2026) — см. https://dev.max.ru/docs-api.
+   */
   async addChatMembers(
     { chat_id, ...body }: FlattenReq<AddChatMembersDTO>,
   ): Promise<AddChatMembersResponse> {
