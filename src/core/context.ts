@@ -20,7 +20,6 @@ import {
 import {
   AddChatAdminsExtra,
   EditChatExtra,
-  GetAllChatsExtra,
   GetChatMembersExtra,
   GetCommentsExtra, PinMessageExtra,
 } from './network/api/modules';
@@ -199,10 +198,6 @@ export class Context<U extends Update = Update> {
     return this.api.sendMessageToChat(this.chatId, text, extra);
   }
 
-  async getAllChats(extra?: GetAllChatsExtra) {
-    return this.api.getAllChats(extra);
-  }
-
   async getChat(chatId?: number) {
     if (chatId !== undefined) {
       return this.api.getChat(chatId);
@@ -275,6 +270,10 @@ export class Context<U extends Update = Update> {
     return this.api.removeChatAdmin(this.chatId, userId);
   }
 
+  /**
+   * @deprecated Эндпоинт `POST /chats/{chat_id}/members` удалён из MAX Bot API 30 сентября 2026
+   * (ограничен с 9 сентября 2026) — см. https://dev.max.ru/docs-api.
+   */
   async addChatMembers(userIds: number[]) {
     this.assert(this.chatId, 'addChatMembers');
     return this.api.addChatMembers(this.chatId, userIds);
@@ -347,7 +346,8 @@ const getChat = (update: Update) => {
 
 const getMessage = (update: Update) => {
   if ('message' in update) {
-    return update.message;
+    // Сервер может прислать message_created без message (см. issue #250) — считаем её отсутствующей.
+    return update.message ?? undefined;
   }
   return undefined;
 };

@@ -15,7 +15,6 @@ import {
   AddChatAdminsExtra,
   EditChatExtra,
   EditCommentExtra,
-  GetAllChatsExtra,
   GetChatMembersExtra,
   GetCommentsExtra,
   PinMessageExtra,
@@ -56,10 +55,6 @@ export class Api {
 
   deleteMyCommands = async () => {
     return this.raw.bots.editMyCommands({ commands: [] });
-  };
-
-  getAllChats = async (extra: GetAllChatsExtra = {}) => {
-    return this.raw.chats.getAll(extra);
   };
 
   getChat = async (id: number) => {
@@ -158,6 +153,10 @@ export class Api {
     return this.raw.chats.deleteChatAdmin({ chat_id: chatId, user_id: userId });
   }
 
+  /**
+   * @deprecated Эндпоинт `POST /chats/{chat_id}/members` удалён из MAX Bot API 30 сентября 2026
+   * (ограничен с 9 сентября 2026) — см. https://dev.max.ru/docs-api.
+   */
   addChatMembers = (chatId: number, userIds: number[]) => {
     return this.raw.chats.addChatMembers({
       chat_id: chatId,

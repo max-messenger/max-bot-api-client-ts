@@ -16,6 +16,23 @@ bot.on('user_added', (ctx) => {/* ... */});
 ```
 Вы можете использовать подсказки в редакторе кода, чтобы увидеть все доступные типы обновлений.
 
+## Payload в `bot_started`
+
+В обновлении `bot_started` приходит поле `payload` — строка, которую пользователь передал при запуске бота.
+Чтобы задать её, добавьте параметр `start` к ссылке на бота (работает так же, как deep linking в Telegram):
+
+```
+https://max.ru/<имя_бота>?start=my-payload
+```
+
+Значение параметра `start` попадёт в `ctx.update.payload` обработчика `bot_started`
+(до 128 символов; если параметр не указан, будет `null`):
+```typescript
+bot.on('bot_started', (ctx) => {
+  const payload = ctx.update.payload; // 'my-payload' или null
+});
+```
+
 ## Получение сообщений
 Вы можете подписаться на обновление `message_created`:
 ```typescript
