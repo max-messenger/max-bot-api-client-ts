@@ -9,15 +9,18 @@ if (!domain) throw new Error('Domain not provided');
 const bot = new Bot(token);
 
 bot.on('message_created', (ctx) =>
-  ctx.reply(ctx.message.body.text ?? 'New message')
+  ctx.reply(ctx.message?.body.text ?? 'New message')
 );
+
+const secret = process.env.WEBHOOK_SECRET;
 
 bot.start({
   mode: 'webhook',
   options: {
     domain,
     port: 3000,
-    secret: process.env.WEBHOOK_SECRET,
+    // secret опционален — передаём его, только если он задан.
+    ...(secret ? { secret } : {}),
     allowedUpdates: ['message_created'],
   },
 });

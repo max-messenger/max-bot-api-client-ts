@@ -123,11 +123,11 @@ type RegistrationStep =
   | 'read-location'
   | 'confirm';
 
-const registrationSummary = (data: RegistrationData) => [
+const registrationSummary = (data: RegistrationData, coordinatesNote = '') => [
   fmt.boldHtml('Проверьте данные'),
   `Имя: ${fmt.escapeHtml(data.name ?? '—')}`,
   `Телефон: ${fmt.escapeHtml(data.phone ?? '—')}`,
-  `Координаты: ${data.location?.latitude ?? '—'}, ${data.location?.longitude ?? '—'}`,
+  `Координаты: ${data.location?.latitude ?? '—'}, ${data.location?.longitude ?? '—'}${coordinatesNote}`,
 ].join('\n');
 
 const testLocation = { latitude: 55.7558, longitude: 37.6173 };
@@ -184,10 +184,12 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
         return transition.stay();
       }
       if (useTestLocation) {
-        await ctx.answerOnCallback({ notification: 'Используются тестовые координаты' });
+        await ctx.answerOnCallback({});
       }
       const nextData = { ...data, location };
-      await ctx.reply(registrationSummary(nextData), {
+      await ctx.reply(
+        registrationSummary(nextData, useTestLocation ? ' (тестовые)' : ''),
+        {
         format: 'html',
         attachments: [Keyboard.inlineKeyboard([[
           Keyboard.button.callback('Сохранить', 'registration:confirm'),
@@ -199,7 +201,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
     confirm: async ({ ctx, data }) => {
       const payload = ctx.callback?.payload;
       if (payload === 'registration:edit') {
-        await ctx.answerOnCallback({ notification: 'Введите данные заново' });
+        await ctx.answerOnCallback({});
         await ctx.reply('Хорошо, как вас зовут?');
         return transition.goto('read-name');
       }
@@ -216,7 +218,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
         phone: data.phone,
         location: data.location,
       });
-      await ctx.answerOnCallback({ notification: 'Профиль сохранён' });
+      await ctx.answerOnCallback({});
       await ctx.reply(`Готово, ${fmt.escapeHtml(data.name)}! Регистрация завершена.`, {
         format: 'html',
       });
@@ -271,7 +273,7 @@ const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
         return transition.stay();
       }
       const delivery = match[1] as Delivery;
-      await ctx.answerOnCallback({ notification: 'Способ получения выбран' });
+      await ctx.answerOnCallback({});
       await ctx.reply([
         fmt.boldHtml('Подтверждение заказа'),
         `Номер: ${fmt.codeHtml(data.orderId)}`,
@@ -289,7 +291,7 @@ const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
     confirm: async ({ ctx, data }) => {
       const payload = ctx.callback?.payload;
       if (payload === 'checkout:back') {
-        await ctx.answerOnCallback({ notification: 'Выберите другой способ' });
+        await ctx.answerOnCallback({});
         await ctx.reply('Выберите способ получения:', { attachments: deliveryKeyboard() });
         return transition.goto('select-delivery');
       }
@@ -316,7 +318,7 @@ const checkout = defineScenario<BotContext, CheckoutData>()<CheckoutStep>({
         });
       }
       ctx.session.cart = [];
-      await ctx.answerOnCallback({ notification: 'Заказ оформлен' });
+      await ctx.answerOnCallback({});
       await ctx.reply(`Заказ ${fmt.codeHtml(data.orderId)} сохранён.`, { format: 'html' });
       return transition.complete();
     },
@@ -332,7 +334,8 @@ bot.catch(async (error, ctx) => {
   // eslint-disable-next-line no-console
   console.error(`[${String(ctx.state.requestId)}]`, error);
   if (ctx.callback !== undefined) {
-    await ctx.answerOnCallback({ notification: 'Не удалось выполнить действие' });
+    // POST /answers не поддерживает toast-уведомления — просто подтверждаем нажатие.
+    await ctx.answerOnCallback({});
   }
   await ctx.reply('Операция не выполнена. Состояние сохранено — повторите действие или /cancel.');
 });
@@ -433,38 +436,43 @@ bot.command('orders', async (ctx) => {
 bot.use(scenarios.interceptMiddleware());
 
 bot.command('register', scenarios.start(registration));
+const catalogKeyboard = () => Keyboard.inlineKeyboard([
+  [
+    Keyboard.button.callback('Кофе · 250 ₽', 'cart:add:coffee'),
+    Keyboard.button.callback('Чай · 180 ₽', 'cart:add:tea'),
+  ],
+  [
+    Keyboard.button.callback('Чизкейк · 320 ₽', 'cart:add:cake'),
+    Keyboard.button.callback('Показать корзину', 'cart:show'),
+  ],
+]);
+
 bot.command('catalog', async (ctx) => {
   await ctx.reply('Добавьте товары в корзину:', {
-    attachments: [Keyboard.inlineKeyboard([
-      [
-        Keyboard.button.callback('Кофе · 250 ₽', 'cart:add:coffee'),
-        Keyboard.button.callback('Чай · 180 ₽', 'cart:add:tea'),
-      ],
-      [
-        Keyboard.button.callback('Чизкейк · 320 ₽', 'cart:add:cake'),
-        Keyboard.button.callback('Показать корзину', 'cart:show'),
-      ],
-    ])],
+    attachments: [catalogKeyboard()],
   });
 });
 bot.action(/^cart:add:(coffee|tea|cake)$/, async (ctx) => {
   const productId = ctx.match?.[1] as ProductId;
   addToCart(ctx.session, productId);
+  // POST /answers не поддерживает toast-уведомления, поэтому подтверждаем нажатие,
+  // обновляя исходное сообщение каталога — текста ответа в чате не будет.
   await ctx.answerOnCallback({
-    notification: `${products[productId].title} добавлен в корзину`,
+    message: {
+      text: `Добавьте товары в корзину (позиций: ${ctx.session.cart.length}):`,
+      attachments: [catalogKeyboard()],
+    },
   });
 });
 bot.action('cart:show', async (ctx) => {
-  await ctx.answerOnCallback({ notification: 'Корзина обновлена' });
   await ctx.reply(cartText(ctx.session.cart), cartReplyExtra(ctx.session.cart));
 });
 bot.action('cart:clear', async (ctx) => {
   ctx.session.cart = [];
-  await ctx.answerOnCallback({ notification: 'Корзина очищена' });
   await ctx.reply('Корзина пуста.');
 });
 bot.action('checkout:start', async (ctx) => {
-  await ctx.answerOnCallback({ notification: 'Переходим к оформлению' });
+  await ctx.answerOnCallback({});
   await ctx.scenario.start(checkout);
 });
 bot.command('cart', (ctx) => {
@@ -478,7 +486,10 @@ const run = async () => {
   // MAX показывает команды как подсказки при вводе `/`.
   await bot.api.setMyCommands(commands);
   await bot.start({
-    allowedUpdates: ['bot_started', 'message_created', 'message_callback'],
+    mode: 'polling',
+    options: {
+      allowedUpdates: ['bot_started', 'message_created', 'message_callback'],
+    },
   });
 };
 
