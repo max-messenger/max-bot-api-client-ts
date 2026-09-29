@@ -149,7 +149,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       },
 
       'read-name': async ({ ctx }) => {
-        const name = ctx.message?.body.text?.trim();
+        const name = ctx.message?.body?.text?.trim();
         if (!name) {
           await ctx.reply('Имя не должно быть пустым.');
           return transition.stay();

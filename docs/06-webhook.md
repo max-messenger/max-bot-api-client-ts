@@ -24,7 +24,11 @@ import { Bot } from '@maxhub/max-bot-api';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
-bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
+bot.on('message_created', (ctx) => {
+  // Иногда Bot API присылает пустой message_created.
+  if (ctx.chatId == null) return;
+  return ctx.reply(ctx.message?.body?.text ?? 'New message');
+});
 
 await bot.start({
   mode: 'webhook',
@@ -72,7 +76,10 @@ import { Bot } from '@maxhub/max-bot-api';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
-bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
+bot.on('message_created', (ctx) => {
+  if (ctx.chatId == null) return;
+  return ctx.reply(ctx.message?.body?.text ?? 'New message');
+});
 
 const handleUpdate = bot.webhookCallback({
   domain: 'https://my-bot.example.com',
@@ -99,7 +106,10 @@ import { Bot } from '@maxhub/max-bot-api';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
-bot.on('message_created', (ctx) => ctx.reply(ctx.message.body.text));
+bot.on('message_created', (ctx) => {
+  if (ctx.chatId == null) return;
+  return ctx.reply(ctx.message?.body?.text ?? 'New message');
+});
 
 // Регистрируем webhook в MAX и получаем готовый (req, res)-колбэк
 const handleUpdate = await bot.createWebhook({

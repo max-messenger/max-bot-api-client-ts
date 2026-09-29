@@ -112,6 +112,7 @@ export type AnswerOnCallbackDTO = {
   },
   body: {
     message?: SendMessageDTO['body'] | null,
+    notification?: string | null,
   }
 };
 

@@ -147,7 +147,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       return transition.goto('read-name');
     },
     'read-name': async ({ ctx }) => {
-      const name = ctx.message?.body.text?.trim();
+      const name = ctx.message?.body?.text?.trim();
       if (!name || name.startsWith('/')) {
         await ctx.reply('Отправьте имя обычным текстовым сообщением.');
         return transition.stay();
@@ -190,12 +190,13 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       await ctx.reply(
         registrationSummary(nextData, useTestLocation ? ' (тестовые)' : ''),
         {
-        format: 'html',
-        attachments: [Keyboard.inlineKeyboard([[
-          Keyboard.button.callback('Сохранить', 'registration:confirm'),
-          Keyboard.button.callback('Изменить', 'registration:edit'),
-        ]])],
-      });
+          format: 'html',
+          attachments: [Keyboard.inlineKeyboard([[
+            Keyboard.button.callback('Сохранить', 'registration:confirm'),
+            Keyboard.button.callback('Изменить', 'registration:edit'),
+          ]])],
+        },
+      );
       return transition.goto('confirm', { location });
     },
     confirm: async ({ ctx, data }) => {
@@ -334,7 +335,6 @@ bot.catch(async (error, ctx) => {
   // eslint-disable-next-line no-console
   console.error(`[${String(ctx.state.requestId)}]`, error);
   if (ctx.callback !== undefined) {
-    // POST /answers не поддерживает toast-уведомления — просто подтверждаем нажатие.
     await ctx.answerOnCallback({});
   }
   await ctx.reply('Операция не выполнена. Состояние сохранено — повторите действие или /cancel.');
@@ -344,6 +344,10 @@ bot.catch(async (error, ctx) => {
 bot.use(async (ctx, next) => {
   ctx.state.requestId = randomUUID();
   await next();
+});
+// Пустой message_created от Bot API не содержит ключа сессии и полезных данных.
+bot.drop((ctx) => {
+  return ctx.updateType === 'message_created' && (ctx.chatId == null || ctx.user == null);
 });
 bot.on(anyOf('message_created', 'message_callback'), async (ctx, next) => {
   ctx.state.interactive = true;
@@ -455,8 +459,8 @@ bot.command('catalog', async (ctx) => {
 bot.action(/^cart:add:(coffee|tea|cake)$/, async (ctx) => {
   const productId = ctx.match?.[1] as ProductId;
   addToCart(ctx.session, productId);
-  // POST /answers не поддерживает toast-уведомления, поэтому подтверждаем нажатие,
-  // обновляя исходное сообщение каталога — текста ответа в чате не будет.
+  // Обновляем исходный каталог, чтобы сразу показать новое число позиций;
+  // отдельного сообщения в чате при этом не появляется.
   await ctx.answerOnCallback({
     message: {
       text: `Добавьте товары в корзину (позиций: ${ctx.session.cart.length}):`,
@@ -465,9 +469,11 @@ bot.action(/^cart:add:(coffee|tea|cake)$/, async (ctx) => {
   });
 });
 bot.action('cart:show', async (ctx) => {
+  await ctx.answerOnCallback({});
   await ctx.reply(cartText(ctx.session.cart), cartReplyExtra(ctx.session.cart));
 });
 bot.action('cart:clear', async (ctx) => {
+  await ctx.answerOnCallback({});
   ctx.session.cart = [];
   await ctx.reply('Корзина пуста.');
 });
@@ -480,7 +486,10 @@ bot.command('cart', (ctx) => {
 });
 bot.command('checkout', scenarios.start(checkout));
 
-bot.on('message_created', (ctx) => ctx.reply('Команда не распознана. Используйте /help.'));
+bot.on('message_created', (ctx) => {
+  if (ctx.chatId == null) return undefined;
+  return ctx.reply('Команда не распознана. Используйте /help.');
+});
 
 const run = async () => {
   // MAX показывает команды как подсказки при вводе `/`.
