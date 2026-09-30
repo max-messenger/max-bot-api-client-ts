@@ -43,7 +43,7 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       return transition.goto('read-name');
     },
     'read-name': async ({ ctx }) => {
-      const name = ctx.message?.body.text?.trim();
+      const name = ctx.message?.body?.text?.trim();
       if (!name) {
         await ctx.reply('Имя не должно быть пустым. Попробуйте ещё раз.');
         return transition.stay();
@@ -52,7 +52,8 @@ const registration = defineScenario<BotContext, RegistrationData>()<Registration
       return transition.goto('confirm', { name });
     },
     confirm: async ({ ctx, data }) => {
-      if (ctx.message?.body.text?.trim().toLowerCase() !== 'да') {
+      const answer = ctx.message?.body?.text?.trim().toLowerCase();
+      if (answer !== 'да') {
         await ctx.reply('Ответьте «да» или отправьте /cancel.');
         return transition.stay();
       }

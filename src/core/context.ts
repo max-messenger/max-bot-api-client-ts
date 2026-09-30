@@ -358,7 +358,7 @@ const getMessageId = (update: Update) => {
   }
 
   if ('message' in update) {
-    return update.message?.body.mid;
+    return update.message?.body?.mid;
   }
 
   return undefined;
@@ -373,7 +373,7 @@ const getCallback = (update: Update) => {
 
 const getContactInfo = (update: Update): ContactInfo | undefined => {
   const message = getMessage(update);
-  if (!message) return undefined;
+  if (!message?.body) return undefined;
   const contact = message.body.attachments?.find((attachment) => {
     return attachment.type === 'contact';
   });
@@ -387,7 +387,7 @@ const getContactInfo = (update: Update): ContactInfo | undefined => {
 
 const getLocation = (update: Update): Location | undefined => {
   const message = getMessage(update);
-  if (!message) return undefined;
+  if (!message?.body) return undefined;
   const location = message.body.attachments?.find((attachment) => {
     return attachment.type === 'location';
   });
@@ -400,7 +400,7 @@ const getLocation = (update: Update): Location | undefined => {
 
 const getSticker = (update: Update): Sticker | undefined => {
   const message = getMessage(update);
-  if (!message) return undefined;
+  if (!message?.body) return undefined;
   const sticker = message.body.attachments?.find((attachment) => {
     return attachment.type === 'sticker';
   });
@@ -423,7 +423,7 @@ const getUser = (update: Update): User | undefined => {
   }
 
   if (update.update_type === 'message_created') {
-    return update.message.sender || undefined;
+    return update.message?.sender ?? undefined;
   }
 
   return undefined;

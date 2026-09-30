@@ -143,10 +143,14 @@ test('filter combinators support update names and guards', () => {
   assert.equal(allOf('message_created', messageEdited)(edited), false);
 });
 
-test('empty message_created and null text do not crash handlers', async () => {
-  // Сервер может прислать message_created без объекта message (issue #250/#296).
-  const emptyUpdate = { update_type: 'message_created', timestamp: 1 };
+const incompleteMessageUpdates = [
+  { update_type: 'message_created', timestamp: 1 },
+  { update_type: 'message_created', timestamp: 1, message: {} },
+  { update_type: 'message_created', timestamp: 1, message: { body: null } },
+];
 
+test('command and hears ignore incomplete message_created updates', async () => {
+  // Сервер может прислать message_created без объекта message (см. #250 и #296).
   const hearsComposer = new Composer();
   let hearsCalls = 0;
   hearsComposer.hears(/.+/, () => { hearsCalls += 1; });
@@ -155,12 +159,13 @@ test('empty message_created and null text do not crash handlers', async () => {
   commandComposer.command('ping', () => { commandCalls += 1; });
 
   const run = (composer, ctx) => composer.middleware()(ctx, noop);
-  await run(hearsComposer, new Context(emptyUpdate, {}));
-  await run(commandComposer, new Context(emptyUpdate, {}));
+  for (const update of incompleteMessageUpdates) {
+    await run(hearsComposer, new Context(update, {}));
+    await run(commandComposer, new Context(update, {}));
+  }
   await run(hearsComposer, messageContext(null));
   await run(commandComposer, messageContext(null));
 
   assert.equal(hearsCalls, 0);
   assert.equal(commandCalls, 0);
-  assert.equal(new Context(emptyUpdate, {}).message, undefined);
 });
