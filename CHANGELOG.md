@@ -3,6 +3,32 @@
 Все заметные изменения этого проекта задокументированы в этом файле.
 Формат основан на [Conventional Commits](https://conventionalcommits.org).
 
+## [1.0.1](https://github.com/max-messenger/max-bot-api-client-ts/compare/v0.3.1...v1.0.1) (2026-09-30)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** удалить мёртвый эндпоинт getAllChats / GET /chats
+
+### 🐛 Исправления
+
+* **composer:** обрабатывать пустые message_created и текст null ([599cfc5](https://github.com/max-messenger/max-bot-api-client-ts/commit/599cfc55434ea00accf6ace0313f715e4e66a419)), closes [#296](https://github.com/max-messenger/max-bot-api-client-ts/issues/296), references [#250](https://github.com/max-messenger/max-bot-api-client-ts/issues/250)
+* **examples:** привести примеры в соответствие с текущими типами и API ([71e4776](https://github.com/max-messenger/max-bot-api-client-ts/commit/71e4776ae6ddaec1e781d013908b7bc50f881128))
+* расширено исправление падения на неполных message_created ([c948432](https://github.com/max-messenger/max-bot-api-client-ts/commit/c948432f98b621732e18b294ae2f3ee85dcca6ff))
+
+### ♻️ Рефакторинг
+
+* **api:** удалить мёртвый эндпоинт getAllChats / GET /chats ([18e1ca2](https://github.com/max-messenger/max-bot-api-client-ts/commit/18e1ca2803ee96135cf9a4f7be5c37b8b1612819)), closes [#302](https://github.com/max-messenger/max-bot-api-client-ts/issues/302)
+
+### 📚 Документация
+
+* payload в bot_started и примечание про webhook/polling ([5022c52](https://github.com/max-messenger/max-bot-api-client-ts/commit/5022c52460da22a41dc119ae51d52532508552d3)), closes [#299](https://github.com/max-messenger/max-bot-api-client-ts/issues/299)
+* актуалищзирован changelog ([c644506](https://github.com/max-messenger/max-bot-api-client-ts/commit/c644506eb5ad41f139d3593439c15ccfcbdff290))
+
+### 🛠 Прочее
+
+* **api:** задепрекейтить addChatMembers перед удалением эндпоинта ([9713cfa](https://github.com/max-messenger/max-bot-api-client-ts/commit/9713cfab997259a228fe80f001cb120457a04b88))
+* **deps:** обновление зависимостей ([0ce20df](https://github.com/max-messenger/max-bot-api-client-ts/commit/0ce20dfc2acf3830466cd7cca494d0360fca7ca4))
+
 ## [0.3.1](https://github.com/max-messenger/max-bot-api-client-ts/compare/v0.3.0...v0.3.1) (2026-09-03)
 
 ### ✨ Новые возможности
