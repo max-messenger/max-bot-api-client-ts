@@ -1,9 +1,10 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-const { MemorySessionStore, session } = require('../dist');
+const { Composer, MemorySessionStore, session } = require('../dist');
 
 const delay = (timeout) => new Promise((resolve) => { setTimeout(resolve, timeout); });
+const noop = () => Promise.resolve();
 
 test('session persists state between updates', async () => {
   const store = new MemorySessionStore();
@@ -104,6 +105,25 @@ test('session changes made before a downstream error are persisted', async () =>
     throw new Error('handler failed');
   }), /handler failed/);
   assert.equal(store.get('user').count, 1);
+});
+
+test('session changes persist when an upstream middleware calls next() without await', async () => {
+  // Воспроизведение #313: middleware с floating next() заставляло finally сохранять
+  // пустое состояние до того, как нижестоящий обработчик мутировал session.
+  const store = new MemorySessionStore();
+  const middleware = session({
+    store, getSessionKey: () => 'user', defaultSession: () => ({ scenario: null }),
+  });
+  const chain = Composer.compose([
+    // Намеренно теряем promise: next() без await.
+    (_ctx, next) => { next(); },
+    (ctx) => { ctx.session.scenario = 'waiting_name'; },
+  ]);
+
+  const ctx = {};
+  await middleware(ctx, async () => chain(ctx, noop));
+
+  assert.equal(store.get('user').scenario, 'waiting_name');
 });
 
 test('memory store expires entries after ttl', async () => {
