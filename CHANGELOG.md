@@ -3,6 +3,12 @@
 Все заметные изменения этого проекта задокументированы в этом файле.
 Формат основан на [Conventional Commits](https://conventionalcommits.org).
 
+## [1.0.2](https://github.com/max-messenger/max-bot-api-client-ts/compare/v1.0.1...v1.0.2) (2026-10-08)
+
+### 🐛 Исправления
+
+* исправлено отслеживание факта ожидания next() (issue 313) ([23bc990](https://github.com/max-messenger/max-bot-api-client-ts/commit/23bc9907d32e8bf455ddefc399b051d30e77fdfc))
+
 ## [1.0.1](https://github.com/max-messenger/max-bot-api-client-ts/compare/v0.3.1...v1.0.1) (2026-09-30)
 
 ### ⚠ BREAKING CHANGES
