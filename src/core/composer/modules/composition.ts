@@ -24,12 +24,42 @@ export const concat = <C extends Context>(
 ): MiddlewareFn<C> => {
   return async (ctx, next) => {
     let nextCalled = false;
-    await first(ctx, async () => {
-      // Повторный `next()` ещё раз запустил бы следующие обработчики.
+    let nextAwaited = false;
+    let downstream: Promise<unknown> | undefined;
+
+    const runNext = (): Promise<void> => {
       if (nextCalled) throw new Error('`next` already called before!');
       nextCalled = true;
-      await andThen(ctx, next);
-    });
+      const promise = Promise.resolve(andThen(ctx, next)) as Promise<void>;
+      downstream = promise;
+      return {
+        then<TF = void, TR = TF>(
+          onFulfilled?: ((value: void) => TF | PromiseLike<TF>) | undefined,
+          onRejected?: ((reason: unknown) => TR | PromiseLike<TR>) | undefined,
+        ): Promise<TF | TR> {
+          nextAwaited = true;
+          return promise.then(onFulfilled as never, onRejected as never) as Promise<TF | TR>;
+        },
+        catch<TR = never>(
+          onRejected?: ((reason: unknown) => TR | PromiseLike<TR>) | undefined,
+        ): Promise<void | TR> {
+          nextAwaited = true;
+          return promise.catch(onRejected as never) as Promise<void | TR>;
+        },
+        finally(
+          onFinally?: (() => void) | (() => Promise<void>) | undefined,
+        ): Promise<void> {
+          nextAwaited = true;
+          return promise.finally(onFinally as never);
+        },
+      } as unknown as Promise<void>;
+    };
+
+    await first(ctx, runNext);
+
+    if (nextCalled && !nextAwaited && downstream !== undefined) {
+      await downstream;
+    }
   };
 };
 

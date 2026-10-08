@@ -92,6 +92,45 @@ test('composer supports async branching, dispatch and error boundaries', async (
   assert.deepEqual(events, ['yes', 'dispatched', 'caught']);
 });
 
+test('a floating next() call is still awaited by the composer', async () => {
+  // Middleware вызывает next() без await/return (см. #313). Нижестоящие обработчики
+  // обязаны выполниться до разрешения цепочки — иначе пост-эффекты (session и др.)
+  // сработают раньше, а ошибка уйдёт в unhandled rejection.
+  const events = [];
+  const floating = (ctx, next) => { next(); };
+  const downstream = () => {
+    events.push('downstream-start');
+    return new Promise((resolve) => {
+      setTimeout(() => { events.push('downstream-end'); resolve(); }, 5);
+    });
+  };
+
+  await Composer.compose([floating, downstream])({}, noop);
+  assert.deepEqual(events, ['downstream-start', 'downstream-end']);
+});
+
+test('an error from a floating next() chain propagates to the caller', async () => {
+  const floating = (ctx, next) => { next(); };
+  const throwing = () => { throw new Error('floating-failed'); };
+
+  await assert.rejects(
+    () => Composer.compose([floating, throwing])({}, noop),
+    /floating-failed/,
+  );
+});
+
+test('catch boundary still swallows an awaited downstream error', async () => {
+  // Регрессия на проверку `!settled`: ошибку, которую `first` корректно дождался
+  // и перехватил через catchMiddleware, повторно выбрасывать нельзя.
+  let swallowed = false;
+  const caught = Composer.catch(() => { swallowed = true; }, () => {
+    throw new Error('handled');
+  });
+
+  await caught({}, noop);
+  assert.equal(swallowed, true);
+});
+
 test('dispatch uses an explicit fallback for missing routes', async () => {
   const events = [];
   const dispatch = Composer.dispatch(
