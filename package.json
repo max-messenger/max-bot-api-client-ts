@@ -51,7 +51,7 @@
     "nodemon": "^3.1.14",
     "release-it": "^21.0.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.24.1"
+    "typescript-eslint": "^8.72.1"
   },
   "dependencies": {
     "debug": "^4.4.3",
