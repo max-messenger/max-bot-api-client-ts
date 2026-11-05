@@ -3,6 +3,8 @@
 Все заметные изменения этого проекта задокументированы в этом файле.
 Формат основан на [Conventional Commits](https://conventionalcommits.org).
 
+## [1.1.0](https://github.com/max-messenger/max-bot-api-client-ts/compare/v1.0.2...v1.1.0) (2026-11-05)
+
 ## [1.0.2](https://github.com/max-messenger/max-bot-api-client-ts/compare/v1.0.1...v1.0.2) (2026-10-08)
 
 ### 🐛 Исправления
