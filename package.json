@@ -32,8 +32,10 @@
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "build": "npm run clean && tsc",
-    "lint": "eslint .",
+    "generate:version": "node scripts/generate-version.mjs",
+    "build": "npm run generate:version && npm run clean && tsc",
+    "lint": "npm run generate:version && eslint .",
+    "prepare": "npm run generate:version",
     "test:examples": "tsc -p tsconfig.examples.json",
     "test": "npm run build && npm run test:examples && node --test tests/*.test.js",
     "release": "release-it",

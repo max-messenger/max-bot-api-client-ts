@@ -1,6 +1,9 @@
 node_modules
 dist
 
+# Generated at build time from package.json
+src/version.g.ts
+
 *.log
 *.env
 

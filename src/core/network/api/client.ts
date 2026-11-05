@@ -1,4 +1,5 @@
 import createDebug from 'debug';
+import { getTelemetryHeaders } from '../../../telemetry';
 
 const debug = createDebug('max:client');
 
@@ -76,7 +77,7 @@ export const createClient = (token: string, options: ClientOptions = {}) => {
     });
 
     const init: RequestInit = { ...getResponseInit(callOptions?.body), method: httpMethod };
-    init.headers = { ...init.headers, Authorization: token };
+    init.headers = { ...getTelemetryHeaders(), ...init.headers, Authorization: token };
     if (callOptions.signal) {
       init.signal = callOptions.signal;
     }
