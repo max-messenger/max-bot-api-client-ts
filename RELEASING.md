@@ -1,10 +1,10 @@
-# Релизный процесс @maxhub/max-bot-api
+# Релизный процесс @maxhub/max-bot-api-client-ts
 
-Этот документ описывает, как собирать changelog и выпускать новые версии пакета `@maxhub/max-bot-api`.
+Этот документ описывает, как собирать changelog и выпускать новые версии пакета `@maxhub/max-bot-api-client-ts`.
 
 ## Предварительные требования
 
-1. **npm-аккаунт** с правами на публикацию пакета `@maxhub/max-bot-api`.
+1. **npm-аккаунт** с правами на публикацию пакета `@maxhub/max-bot-api-client-ts`.
    Проверить авторизацию:
    ```sh
    npm whoami
@@ -170,7 +170,7 @@ git reset --hard HEAD~1
 git push --force-with-lease origin main
 
 # Снять версию с npm (только в течение 72 часов, deprecated)
-npm deprecate @maxhub/max-bot-api@X.Y.Z "отозвано — используйте X.Y.W"
+npm deprecate @maxhub/max-bot-api-client-ts@X.Y.Z "отозвано — используйте X.Y.W"
 ```
 
 > Полностью удалить версию из npm невозможно после 72 часов — только deprecate.

@@ -20,7 +20,7 @@
 Запустить бота в режиме Webhook можно через `bot.start` с конфигом `mode: 'webhook'`:
 
 ```typescript
-import { Bot } from '@maxhub/max-bot-api';
+import { Bot } from '@maxhub/max-bot-api-client-ts';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
@@ -72,7 +72,7 @@ await bot.stopWebhook();
 
 ```typescript
 import { createServer } from 'node:http';
-import { Bot } from '@maxhub/max-bot-api';
+import { Bot } from '@maxhub/max-bot-api-client-ts';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
@@ -102,7 +102,7 @@ server.listen(3000);
 
 ```typescript
 import { createServer } from 'node:http';
-import { Bot } from '@maxhub/max-bot-api';
+import { Bot } from '@maxhub/max-bot-api-client-ts';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
@@ -128,7 +128,7 @@ server.listen(3000);
 `Webhook` экспортирует статические методы, которые можно вызывать без создания экземпляра класса:
 
 ```typescript
-import { Webhook } from '@maxhub/max-bot-api';
+import { Webhook } from '@maxhub/max-bot-api-client-ts';
 
 // Генерация стабильного hash-пути из токена бота
 const hash = Webhook.generateTokenRelatedHash(process.env.BOT_TOKEN);
@@ -152,7 +152,7 @@ Webhook.getWebhookUrl('https://my-bot.example.com', '/webhook/abc');
 Для удаления устаревших подписок можно использовать статический метод `Webhook.clearSubscriptions`:
 
 ```typescript
-import { Webhook } from '@maxhub/max-bot-api';
+import { Webhook } from '@maxhub/max-bot-api-client-ts';
 
 // Удалить все подписки, кроме активного webhook-URL
 await Webhook.clearSubscriptions(bot.api, activeUrl);

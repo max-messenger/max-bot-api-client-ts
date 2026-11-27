@@ -1,6 +1,6 @@
 import {
   Bot, Context, MemorySessionStore, session,
-} from '@maxhub/max-bot-api';
+} from '@maxhub/max-bot-api-client-ts';
 
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error('Token must be provided');

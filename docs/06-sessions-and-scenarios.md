@@ -35,7 +35,7 @@ bot.use(async (ctx, next) => {
 > будут потеряны. Для рабочего бота используйте внешнее хранилище.
 
 ```typescript
-import { Bot, Context, session } from '@maxhub/max-bot-api';
+import { Bot, Context, session } from '@maxhub/max-bot-api-client-ts';
 
 interface BotSession {
   count: number;

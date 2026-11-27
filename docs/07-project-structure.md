@@ -33,7 +33,7 @@ src/
 ```typescript
 import {
   Bot, Composer, ScenarioEngine, Keyboard, fmt, session,
-} from '@maxhub/max-bot-api';
+} from '@maxhub/max-bot-api-client-ts';
 ```
 
 Новые возможности следует добавлять в существующую функциональную область. Новая папка нужна, когда появляется самостоятельный публичный контракт или несколько файлов с общей ответственностью.

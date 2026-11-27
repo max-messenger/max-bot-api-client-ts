@@ -20,20 +20,20 @@
 ### Установка
 #### npm
 ```sh
-npm install @maxhub/max-bot-api
+npm install @maxhub/max-bot-api-client-ts
 ```
 #### yarn
 ```sh
-yarn add @maxhub/max-bot-api
+yarn add @maxhub/max-bot-api-client-ts
 ```
 #### pnpm
 ```sh
-pnpm add @maxhub/max-bot-api
+pnpm add @maxhub/max-bot-api-client-ts
 ```
 
 ### Пример
 ```javascript
-import { Bot } from '@maxhub/max-bot-api';
+import { Bot } from '@maxhub/max-bot-api-client-ts';
 
 const bot = new Bot(process.env.BOT_TOKEN);
 

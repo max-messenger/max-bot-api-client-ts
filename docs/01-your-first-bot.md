@@ -2,14 +2,14 @@
 
 Для начала вам нужно получить токен бота. Для этого откройте диалог с [MasterBot](https://max.ru/masterbot) и создайте нового бота, следуя инструкциям. После этого MasterBot отправит вам токен.
 
-Создайте новый проект и установите `max-bot-api`. Для этого откройте терминал и выполните следующие команды:
+Создайте новый проект и установите `max-bot-api-client-ts`. Для этого откройте терминал и выполните следующие команды:
 ```sh
 # Создайте новую папку и перейдите в неё
 mkdir my-first-bot
 cd my-first-bot
 
 # Установите Max Bot API
-yarn add @maxhub/max-bot-api
+yarn add @maxhub/max-bot-api-client-ts
 
 # Установите и настройте TypeScript (опционально, но мы рекомендуем TypeScript вместо JavaScript)
 yarn add -D typescript
@@ -20,7 +20,7 @@ npx tsc --init
 
 Создайте экземпляр класса `Bot` и передайте токен в его конструктор. Мы рекомендуем передавать токен через переменные окружения. Если вы не знакомы с переменными окружения, то можете прочитать про них в [документации](https://nodejs.org/en/learn/command-line/how-to-read-environment-variables-from-nodejs). Для удобной работы с переменными окружения можно использовать библиотеку [`dotenv`](https://www.npmjs.com/package/dotenv). 
 ```typescript
-import { Bot } from '@maxhub/max-bot-api';
+import { Bot } from '@maxhub/max-bot-api-client-ts';
 
 // Создайте экземпляр класса `Bot` и передайте ему токен 
 const bot = new Bot(process.env.BOT_TOKEN);
